@@ -194,18 +194,30 @@
             <div class="bg-gray-100 p-8 rounded-3xl text-center">
                 <p class="text-lg font-bold mb-6">💡 마우스로 아래 사진에서 [시작 버튼], [작업 표시줄 빈 공간], [시계와 날짜]를 찾아 클릭해 보세요!</p>
                 
-                <div style="position: relative; width: 100%; border: 4px solid #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
-                    <img src="images/peppa/taskbar_capture.png" alt="작업표시줄 캡쳐" style="width: 100%; display: block;" onerror="this.src='https://via.placeholder.com/1200x80?text=taskbar_capture.png+%EC%A0%80%EC%9E%A5%ED%95%B4%EC%A3%BC%EC%84%B8%EC%9A%94'">
+                <div style="position: relative; width: 100%; border: 4px solid #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); background: #f3f4f6;">
                     
-                    <!-- 클릭 영역 (투명) -->
-                    <!-- 시작 버튼: 약 0~5% 부근 -->
-                    <div onclick="checkQuiz(1, this)" style="position: absolute; left: 0%; top: 0; width: 6%; height: 100%; cursor: pointer;" title="여기가 시작 버튼일까요?"></div>
-                    
-                    <!-- 작업 표시줄 빈 공간: 앱 아이콘들과 트레이 아이콘 사이 (약 40~80%) -->
-                    <div onclick="checkQuiz(2, this)" style="position: absolute; left: 40%; top: 0; width: 40%; height: 100%; cursor: pointer;" title="이곳이 작업 표시줄일까요?"></div>
-                    
-                    <!-- 시계와 날짜: 우측 끝 (약 85~100%) -->
-                    <div onclick="checkQuiz(3, this)" style="position: absolute; left: 85%; top: 0; width: 15%; height: 100%; cursor: pointer;" title="여기가 시계와 날짜일까요?"></div>
+                    <!-- HTML로 구현한 가짜 작업표시줄 -->
+                    <div class="flex items-center w-full h-16 bg-gray-200 border-t border-gray-300">
+                        
+                        <!-- 1. 시작 버튼 -->
+                        <div onclick="checkQuiz(1, this)" class="h-full flex px-6 items-center justify-center cursor-pointer hover:bg-white transition-colors" title="여기가 시작 버튼일까요?">
+                            <i class="fab fa-windows text-blue-600 text-3xl"></i>
+                        </div>
+                        
+                        <!-- 2. 작업 표시줄 (앱 아이콘들 및 빈 공간) -->
+                        <div onclick="checkQuiz(2, this)" class="flex-1 h-full flex items-center px-4 cursor-pointer hover:bg-white transition-colors gap-4" title="이곳이 작업 표시줄일까요?">
+                            <i class="fas fa-folder text-yellow-400 text-2xl hover:bg-gray-300 p-2 rounded"></i>
+                            <i class="fab fa-chrome text-green-500 text-2xl hover:bg-gray-300 p-2 rounded"></i>
+                            <div class="flex-1 h-full"></div> <!-- 빈 공간 -->
+                        </div>
+                        
+                        <!-- 3. 시계와 날짜 -->
+                        <div onclick="checkQuiz(3, this)" class="h-full flex flex-col items-center justify-center px-6 border-l border-gray-300 cursor-pointer hover:bg-white transition-colors text-sm text-gray-700 font-bold" title="여기가 시계와 날짜일까요?">
+                            <span>12:00 PM</span>
+                            <span>2024-05-20</span>
+                        </div>
+                        
+                    </div>
                 </div>
 
                 <div id="quiz-msg" class="mt-6 text-xl font-bold h-10 text-gray-500">사진의 요소를 클릭해보세요!</div>
