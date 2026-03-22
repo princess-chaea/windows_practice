@@ -145,17 +145,6 @@
         }
 
         .character-img { font-size: 50px; }
-
-        /* 캐릭터 스프라이트 (3x4 이미지 기준) */
-        .sprite-char {
-            width: 80px;
-            height: 100px;
-            background-image: url('images/peppa/characters.jpg'); /* 이미지를 이 이름으로 저장해주세요 */
-            background-size: 300% 400%;
-            background-repeat: no-repeat;
-            display: inline-block;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
-        }
     </style>
 </head>
 <body oncontextmenu="return handleRightClick(event)">
@@ -164,10 +153,14 @@
     <div id="intro-screen" class="fixed inset-0 bg-white z-[5000] flex flex-col p-10 overflow-y-auto">
         <div class="max-w-4xl mx-auto w-full">
             <div class="flex items-center gap-6 mb-8 border-b-4 border-pink-200 pb-6">
-                <div class="text-7xl">🐷</div>
+                <!-- 선생님이 만드신 peppa_intro.png (혹은 peppa.png)를 활용 -->
+                <div class="flex items-center justify-center w-24 h-24 bg-pink-100 rounded-full border-4 border-pink-300 shadow-lg">
+                    <img src="images/peppa/12.png" alt="페파" class="w-20 h-20 object-contain drop-shadow-md" onerror="this.outerHTML='<span class=\\&quot;text-5xl\\&quot;>🐷</span>'">
+                </div>
                 <div>
                     <h1 class="text-4xl font-black text-gray-800">윈도우 마스터 교실</h1>
                     <p class="text-xl text-pink-500 font-bold">선생님과 함께 오늘 배울 내용을 알아봐요!</p>
+                </div>
                 </div>
             </div>
 
@@ -199,13 +192,23 @@
             </div>
 
             <div class="bg-gray-100 p-8 rounded-3xl text-center">
-                <p class="text-lg font-bold mb-6">💡 미션을 시작하기 전, 화면에서 다음을 찾아 클릭해 보세요!</p>
-                <div class="flex justify-center gap-4">
-                    <button id="quiz-1" onclick="checkQuiz(1)" class="px-6 py-3 bg-white rounded-full shadow hover:bg-pink-100 transition">📍 시작 버튼</button>
-                    <button id="quiz-2" onclick="checkQuiz(2)" class="px-6 py-3 bg-white rounded-full shadow hover:bg-pink-100 transition">📍 작업 표시줄</button>
-                    <button id="quiz-3" onclick="checkQuiz(3)" class="px-6 py-3 bg-white rounded-full shadow hover:bg-pink-100 transition">📍 시계와 날짜</button>
+                <p class="text-lg font-bold mb-6">💡 마우스로 아래 사진에서 [시작 버튼], [작업 표시줄 빈 공간], [시계와 날짜]를 찾아 클릭해 보세요!</p>
+                
+                <div style="position: relative; width: 100%; border: 4px solid #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);">
+                    <img src="images/peppa/taskbar_capture.png" alt="작업표시줄 캡쳐" style="width: 100%; display: block;" onerror="this.src='https://via.placeholder.com/1200x80?text=taskbar_capture.png+%EC%A0%80%EC%9E%A5%ED%95%B4%EC%A3%BC%EC%84%B8%EC%9A%94'">
+                    
+                    <!-- 클릭 영역 (투명) -->
+                    <!-- 시작 버튼: 약 0~5% 부근 -->
+                    <div onclick="checkQuiz(1, this)" style="position: absolute; left: 0%; top: 0; width: 6%; height: 100%; cursor: pointer;" title="여기가 시작 버튼일까요?"></div>
+                    
+                    <!-- 작업 표시줄 빈 공간: 앱 아이콘들과 트레이 아이콘 사이 (약 40~80%) -->
+                    <div onclick="checkQuiz(2, this)" style="position: absolute; left: 40%; top: 0; width: 40%; height: 100%; cursor: pointer;" title="이곳이 작업 표시줄일까요?"></div>
+                    
+                    <!-- 시계와 날짜: 우측 끝 (약 85~100%) -->
+                    <div onclick="checkQuiz(3, this)" style="position: absolute; left: 85%; top: 0; width: 15%; height: 100%; cursor: pointer;" title="여기가 시계와 날짜일까요?"></div>
                 </div>
-                <p id="quiz-msg" class="mt-4 text-pink-600 font-bold h-6"></p>
+
+                <div id="quiz-msg" class="mt-6 text-xl font-bold h-10 text-gray-500">사진의 요소를 클릭해보세요!</div>
             </div>
 
             <button id="start-mission-btn" disabled class="mt-10 w-full py-5 rounded-full bg-gray-300 text-gray-500 font-black text-2xl cursor-not-allowed transition-all" onclick="startApp()">
@@ -271,46 +274,51 @@
         let offset = { x: 0, y: 0 };
         let snapCandidate = false; // 스냅 성공 대기 상태
 
-        // 스프라이트 맵 좌표 (퍼센트)
-        const spriteMap = {
-            '캔디': {x: 0, y: 0},      '수지': {x: 50, y: 0},      '대니': {x: 100, y: 0},
-            '조이': {x: 0, y: 33.33},  '레베카': {x: 50, y: 33.33}, '에밀리': {x: 100, y: 33.33},
-            '페드로': {x: 0, y: 66.66}, '리차드': {x: 50, y: 66.66}, '조지': {x: 100, y: 66.66},
-            '페파_요정': {x: 0, y: 100}, '페파_공주': {x: 50, y: 100}, '페파': {x: 100, y: 100},
-            '제럴드': {x: 0, y: 66.66} // 기린이 없어서 임시로 페드로(조랑말) 사용
-        };
-
         const missions = [
-            { sprite: '페파_요정', char: '🐷', name: '페파', msg: "안녕! 나는 페파야. 왼쪽 아래의 [시작 버튼]을 클릭해서 나와 인사를 나눠볼까?", type: 'start_bar_click' },
-            { sprite: '페파', char: '🐷', name: '페파', msg: "정말 반가워! 이제 바탕화면의 [내 PC] 아이콘을 드래그해서 화면 중간의 점선 안으로 옮겨볼래?", type: 'icon_move', target: 'pc' },
-            { sprite: '조지', char: '🦖', name: '조지', msg: "공룡! 아니... 바탕화면 빈 곳에 마우스 오른쪽 버튼을 누르고 [새로 고침]을 클릭해봐!", type: 'refresh' },
-            { char: '🐰', name: '레베카', msg: "바탕화면 우클릭 메뉴의 [개인 설정]을 눌러서 배경색을 바꿔보자!", type: 'theme' },
-            { char: '🐱', name: '캔디', msg: "[내 PC] 아이콘을 '더블 클릭'해서 프로그램을 실행해봐!", type: 'run', target: '내 PC' },
-            { char: '🐶', name: '대니', msg: "창의 윗부분(제목 표시줄)을 잡고 화면 오른쪽 아래로 옮겨봐!", type: 'window_move' },
-            { char: '🐘', name: '에밀리', msg: "창의 [－] 버튼을 눌러서 작업 표시줄로 쏙 숨겨보자!", type: 'minimize' },
-            { char: '🐑', name: '수지', msg: "하단 작업 표시줄에 숨어있는 아이콘을 클릭해서 다시 꺼내줘!", type: 'restore' },
-            { char: '🦓', name: '조이', msg: "창의 [□] 버튼을 눌러서 화면 전체를 꽉 채워볼까?", type: 'maximize' },
-            { char: '🦒', name: '제럴드', msg: "창을 화면 '맨 오른쪽 끝'으로 밀어서 딱 붙여봐! (스냅 기능)", type: 'snap' },
-            { char: '🐷', name: '페파', msg: "이제 파일 관리 시간! 우클릭 - [새로 만들기]를 눌러서 새 폴더를 만들어봐.", type: 'new_folder' },
-            { char: '🦖', name: '조지', msg: "바탕화면에 있는 [파일.txt]를 드래그해서 [새 폴더] 안으로 넣어줘!", type: 'move_to_folder' },
-            { char: '🐰', name: '레베카', msg: "[새 폴더]를 더블 클릭해서 파일이 잘 들어갔는지 확인해봐!", type: 'open_folder' },
-            { char: '🐶', name: '대니', msg: "마지막! 폴더 안의 파일을 드래그해서 바탕화면 [휴지통]에 버려보자!", type: 'delete' },
-            { char: '🐷', name: '페파', msg: "모든 미션을 완료했어! 열려있는 모든 창의 [X]를 눌러서 종료해줘!", type: 'close_all' }
+            { img: 'images/peppa/10.png', char: '🐷', name: '페파', msg: "안녕! 나는 페파야. 왼쪽 아래의 [시작 버튼]을 클릭해서 나와 인사를 나눠볼까?", type: 'start_bar_click' },
+            { img: 'images/peppa/12.png', char: '🐷', name: '페파', msg: "정말 반가워! 이제 바탕화면의 [내 PC] 아이콘을 드래그해서 화면 중간의 점선 안으로 옮겨볼래?", type: 'icon_move', target: 'pc' },
+            { img: 'images/peppa/9.png', char: '🦖', name: '조지', msg: "공룡! 아니... 바탕화면 빈 곳에 마우스 오른쪽 버튼을 누르고 [새로 고침]을 클릭해봐!", type: 'refresh' },
+            { img: 'images/peppa/5.png', char: '🐰', name: '레베카', msg: "바탕화면 우클릭 메뉴의 [개인 설정]을 눌러서 배경색을 바꿔보자!", type: 'theme' },
+            { img: 'images/peppa/1.png', char: '🐱', name: '캔디', msg: "[내 PC] 아이콘을 '더블 클릭'해서 프로그램을 실행해봐!", type: 'run', target: '내 PC' },
+            { img: 'images/peppa/3.png', char: '🐶', name: '대니', msg: "창의 윗부분(제목 표시줄)을 잡고 화면 오른쪽 아래로 옮겨봐!", type: 'window_move' },
+            { img: 'images/peppa/6.png', char: '🐘', name: '에밀리', msg: "창의 [－] 버튼을 눌러서 작업 표시줄로 쏙 숨겨보자!", type: 'minimize' },
+            { img: 'images/peppa/2.png', char: '🐑', name: '수지', msg: "하단 작업 표시줄에 숨어있는 아이콘을 클릭해서 다시 꺼내줘!", type: 'restore' },
+            { img: 'images/peppa/4.png', char: '🦓', name: '조이', msg: "창의 [□] 버튼을 눌러서 화면 전체를 꽉 채워볼까?", type: 'maximize' },
+            { img: 'images/peppa/8.png', char: '🦒', name: '리차드', msg: "창을 화면 '맨 오른쪽 끝'으로 밀어서 딱 붙여봐! (스냅 기능)", type: 'snap' },
+            { img: 'images/peppa/12.png', char: '🐷', name: '페파', msg: "이제 파일 관리 시간! 우클릭 - [새로 만들기]를 눌러서 새 폴더를 만들어봐.", type: 'new_folder' },
+            { img: 'images/peppa/9.png', char: '🦖', name: '조지', msg: "바탕화면에 있는 [파일.txt]를 드래그해서 [새 폴더] 안으로 넣어줘!", type: 'move_to_folder' },
+            { img: 'images/peppa/5.png', char: '🐰', name: '레베카', msg: "[새 폴더]를 더블 클릭해서 파일이 잘 들어갔는지 확인해봐!", type: 'open_folder' },
+            { img: 'images/peppa/3.png', char: '🐶', name: '대니', msg: "마지막! 폴더 안의 파일을 드래그해서 바탕화면 [휴지통]에 버려보자!", type: 'delete' },
+            { img: 'images/peppa/12.png', char: '🐷', name: '페파', msg: "모든 미션을 완료했어! 열려있는 모든 창의 [X]를 눌러서 종료해줘!", type: 'close_all' }
         ];
 
         // --- 퀴즈 및 기초 확인 ---
-        function checkQuiz(id) {
+        function checkQuiz(id, elem) {
             quizDone.add(id);
-            const msgs = ["📍 아주 잘 찾았어!", "📍 맞아, 거기가 작업 표시줄이야!", "📍 시간 확인도 완벽해!"];
-            document.getElementById('quiz-msg').innerText = msgs[id-1];
-            document.getElementById('quiz-'+id).classList.add('bg-pink-500', 'text-white');
+            const msgBox = document.getElementById('quiz-msg');
+            
+            // 시각적 피드백 (반짝임 등)
+            if (elem) {
+                elem.style.background = 'rgba(236, 72, 153, 0.4)'; // 핑크 반투명
+                elem.style.border = '2px solid #ec4899';
+            }
+
+            if (id === 1) {
+                msgBox.innerHTML = "<span class='text-pink-600'>📍 <b>시작 버튼</b></span>: 프로그램들을 한눈에 볼 수 있는 윈도우의 첫 출발점이에요!";
+            } else if (id === 2) {
+                msgBox.innerHTML = "<span class='text-blue-500'>📍 <b>작업 표시줄</b></span>: 자주 쓰는 프로그램들이 모여 있는 긴 줄이랍니다!";
+            } else if (id === 3) {
+                msgBox.innerHTML = "<span class='text-green-600'>📍 <b>시계와 날짜</b></span>: 현재 시간과 날짜를 잊지 않게 알려주는 곳이에요!";
+            }
             
             if (quizDone.size === 3) {
                 const btn = document.getElementById('start-mission-btn');
                 btn.disabled = false;
                 btn.classList.replace('bg-gray-300', 'bg-pink-500');
                 btn.classList.replace('text-gray-500', 'text-white');
+                btn.classList.add('animate-bounce');
                 btn.innerText = "이제 페파와 함께 미션 시작!";
+                msgBox.innerHTML += "<br><span class='text-purple-600 mt-2 block'>🎉 3가지를 모두 찾았어요! 시작 버튼을 눌러주세요!</span>";
             }
         }
 
@@ -353,17 +361,23 @@
             const m = missions[currentStep];
             if (!m) return;
             
-            // 스프라이트 렌더링
-            const sName = m.sprite || m.name;
-            const sPos = spriteMap[sName];
-            
-            if (sPos) {
-                document.getElementById('character-emoji').innerHTML = `<div class="sprite-char" style="background-position: ${sPos.x}% ${sPos.y}%;"></div>`;
+            // 이미지가 있으면 이미지 표시, 없으면 이모지
+            if (m.img) {
+                document.getElementById('character-emoji').innerHTML = `<img src="${m.img}" alt="${m.name}" style="height: 110px; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.15)); margin-bottom: -15px;" onerror="this.outerHTML='<div class=\\&quot;character-img\\&quot;>${m.char}</div>'">`;
             } else {
                 document.getElementById('character-emoji').innerHTML = `<div class="character-img">${m.char}</div>`;
             }
             
             document.getElementById('peppa-text').innerText = `${m.name}: ${m.msg}`;
+            
+            // 미리 모든 창을 꺼둔 경우 대비 로직
+            if (m.type === 'close_all' && windows.length === 0) {
+                // 이미 모든 창이 꺼져 있으면 약간의 지연 후 바로 클리어
+                setTimeout(() => {
+                    completeMission();
+                }, 1000);
+                return;
+            }
             
             const tz = document.getElementById('target-zone');
             if (m.type === 'start_bar_click') {
