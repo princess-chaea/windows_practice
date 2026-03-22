@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Nanum+Gothic:wght@400;700;800&display=swap');
-        
+
         :root {
             --win-blue: #0078d4;
             --peppa-pink: #ffb6c1;
@@ -16,7 +17,8 @@
 
         body {
             font-family: 'Nanum+Gothic', sans-serif;
-            background: #87CEEB; /* 페파피그 하늘색 배경 */
+            background: #87CEEB;
+            /* 페파피그 하늘색 배경 */
             overflow: hidden;
             user-select: none;
             height: 100vh;
@@ -28,7 +30,7 @@
             position: absolute;
             background: white;
             border: 1px solid #d1d1d1;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
             display: flex;
             flex-direction: column;
             min-width: 300px;
@@ -56,8 +58,15 @@
             cursor: pointer;
             transition: 0.2s;
         }
-        .win-btn:hover { background: #eee; }
-        .win-btn.close:hover { background: #e81123; color: white; }
+
+        .win-btn:hover {
+            background: #eee;
+        }
+
+        .win-btn.close:hover {
+            background: #e81123;
+            color: white;
+        }
 
         /* 바탕화면 아이콘 */
         .desktop-icon {
@@ -68,13 +77,17 @@
             align-items: center;
             gap: 5px;
             color: white;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
             cursor: pointer;
             position: absolute;
             border-radius: 5px;
             border: 1px solid transparent;
         }
-        .desktop-icon:hover { background: rgba(255,255,255,0.2); border-color: rgba(255,255,255,0.3); }
+
+        .desktop-icon:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
 
         /* 가이드 캐릭터 영역 */
         .guide-character {
@@ -95,7 +108,7 @@
             margin-bottom: 10px;
             position: relative;
             max-width: 300px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
 
         .bubble::after {
@@ -114,7 +127,7 @@
             bottom: 0;
             width: 100%;
             height: 45px;
-            background: rgba(255,255,255,0.8);
+            background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
             display: flex;
             align-items: center;
@@ -126,25 +139,36 @@
             position: absolute;
             background: white;
             border: 1px solid #ccc;
-            box-shadow: 3px 3px 10px rgba(0,0,0,0.1);
+            box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.1);
             display: none;
             z-index: 4000;
             padding: 5px 0;
             min-width: 160px;
         }
-        .menu-item { padding: 8px 15px; font-size: 13px; cursor: pointer; }
-        .menu-item:hover { background: #0078d4; color: white; }
+
+        .menu-item {
+            padding: 8px 15px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        .menu-item:hover {
+            background: #0078d4;
+            color: white;
+        }
 
         .target-zone {
             position: absolute;
-            border: 4px dashed rgba(255,255,255,0.6);
-            background: rgba(255,255,255,0.1);
+            border: 4px dashed rgba(255, 255, 255, 0.6);
+            background: rgba(255, 255, 255, 0.1);
             pointer-events: none;
             display: none;
             z-index: 1;
         }
 
-        .character-img { font-size: 50px; }
+        .character-img {
+            font-size: 50px;
+        }
 
         /* 단축 아이콘 화살표 */
         .shortcut-badge {
@@ -164,8 +188,11 @@
         }
 
         /* 큰 아이콘 모드 */
-        .desktop-icon.large { scale: 1.5; margin: 20px; }
-        
+        .desktop-icon.large {
+            scale: 1.5;
+            margin: 20px;
+        }
+
         /* 창 크기 조절 핸들 */
         .resizer {
             width: 15px;
@@ -186,6 +213,7 @@
             gap: 5px !important;
             padding: 10px !important;
         }
+
         .explorer-list .desktop-icon {
             position: static !important;
             flex-direction: row !important;
@@ -196,10 +224,18 @@
             justify-content: flex-start !important;
             border-radius: 4px !important;
         }
-        .explorer-list .desktop-icon:hover { background: rgba(0,0,0,0.05); }
-        .explorer-list .desktop-icon i { font-size: 1.2rem !important; margin-bottom: 0 !important; }
+
+        .explorer-list .desktop-icon:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+        .explorer-list .desktop-icon i {
+            font-size: 1.2rem !important;
+            margin-bottom: 0 !important;
+        }
     </style>
 </head>
+
 <body oncontextmenu="return handleRightClick(event)">
 
     <!-- [1] 교사 가이드 및 인트로 화면 -->
@@ -207,89 +243,108 @@
         <div class="max-w-4xl mx-auto w-full">
             <div class="flex items-center gap-6 mb-8 border-b-4 border-pink-200 pb-6">
                 <!-- 선생님이 만드신 peppa_intro.png (혹은 peppa.png)를 활용 -->
-                <div class="flex items-center justify-center w-24 h-24 bg-pink-100 rounded-full border-4 border-pink-300 shadow-lg">
-                    <img src="images/peppa/12.png" alt="페파" class="w-20 h-20 object-contain drop-shadow-md" onerror="this.outerHTML='<span class=\\&quot;text-5xl\\&quot;>🐷</span>'">
+                <div
+                    class="flex items-center justify-center w-24 h-24 bg-pink-100 rounded-full border-4 border-pink-300 shadow-lg">
+                    <img src="images/peppa/12.png" alt="페파" class="w-20 h-20 object-contain drop-shadow-md"
+                        onerror="this.outerHTML='<span class=\\&quot;text-5xl\\&quot;>🐷</span>'">
                 </div>
                 <div>
                     <h1 class="text-4xl font-black text-gray-800">윈도우 마스터 교실</h1>
                     <p class="text-xl text-pink-500 font-bold">선생님과 함께 오늘 배울 내용을 알아봐요!</p>
                 </div>
-                </div>
             </div>
-
-            <!-- 오늘 배울 내용: 단원 제목 타이핑으로 변경 -->
-            <div class="grid grid-cols-1 gap-6 mb-10">
-                <div class="bg-blue-50 p-8 rounded-3xl border-2 border-blue-200 shadow-sm flex flex-col md:flex-row items-center gap-8">
-                    <div class="flex-1 w-full space-y-6">
-                        <div class="flex flex-col gap-2">
-                             <div class="flex items-center justify-between font-black text-2xl text-blue-700">
-                                <span>03 화면 설정하기</span>
-                                <i id="check-type-1" class="fas fa-check-circle hidden"></i>
-                             </div>
-                             <input type="text" oninput="checkTyping(this, '03 화면 설정하기', 1)" class="w-full px-6 py-4 rounded-2xl border-2 border-blue-200 text-xl focus:outline-none focus:ring-4 focus:ring-blue-300" placeholder="위의 제목을 똑같이 타이핑해 보세요" autocomplete="off">
-                        </div>
-                        <div class="flex flex-col gap-2">
-                             <div class="flex items-center justify-between font-black text-2xl text-green-700">
-                                <span>04 창 다루기</span>
-                                <i id="check-type-2" class="fas fa-check-circle hidden"></i>
-                             </div>
-                             <input type="text" oninput="checkTyping(this, '04 창 다루기', 2)" class="w-full px-6 py-4 rounded-2xl border-2 border-green-200 text-xl focus:outline-none focus:ring-4 focus:ring-green-300" placeholder="위의 제목을 똑같이 타이핑해 보세요" autocomplete="off">
-                        </div>
-                        <div class="flex flex-col gap-2">
-                             <div class="flex items-center justify-between font-black text-2xl text-yellow-700">
-                                <span>05 파일과 폴더 관리하기</span>
-                                <i id="check-type-3" class="fas fa-check-circle hidden"></i>
-                             </div>
-                             <input type="text" oninput="checkTyping(this, '05 파일과 폴더 관리하기', 3)" class="w-full px-6 py-4 rounded-2xl border-2 border-yellow-200 text-xl focus:outline-none focus:ring-4 focus:ring-yellow-300" placeholder="위의 제목을 똑같이 타이핑해 보세요" autocomplete="off">
-                        </div>
-                    </div>
-                    <div class="w-full md:w-80 bg-white p-6 rounded-2xl border border-gray-100 shadow-inner">
-                        <p class="text-sm font-bold text-gray-400 mb-4 tracking-tighter">이 단원들을 모두 마스터하면<br>페파가 선물을 줄 거예요! ✨</p>
-                        <ul class="text-xs space-y-2 text-gray-500 font-medium">
-                            <li>• 배경화면과 아이콘 크기 바꾸기</li>
-                            <li>• 창을 자유자재로 움직이고 조절하기</li>
-                            <li>• 파일과 폴더를 만들고 정리하기</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="bg-gray-100 p-8 rounded-3xl text-center">
-                <p class="text-lg font-bold mb-6">💡 마우스로 아래 사진에서 [시작 버튼], [작업 표시줄 빈 공간], [시계와 날짜]를 찾아 클릭해 보세요!</p>
-                
-                <div style="position: relative; width: 100%; border: 4px solid #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); background: #f3f4f6;">
-                    
-                    <!-- HTML로 구현한 가짜 작업표시줄 -->
-                    <div class="flex items-center w-full h-16 bg-gray-200 border-t border-gray-300">
-                        
-                        <!-- 1. 시작 버튼 -->
-                        <div onclick="checkQuiz(1, this)" class="h-full flex px-6 items-center justify-center cursor-pointer hover:bg-white transition-colors" title="여기가 시작 버튼일까요?">
-                            <i class="fab fa-windows text-blue-600 text-3xl"></i>
-                        </div>
-                        
-                        <!-- 2. 작업 표시줄 (앱 아이콘들 및 빈 공간) -->
-                        <div onclick="checkQuiz(2, this)" class="flex-1 h-full flex items-center px-4 cursor-pointer hover:bg-white transition-colors gap-4" title="이곳이 작업 표시줄일까요?">
-                            <i class="fas fa-folder text-yellow-400 text-2xl hover:bg-gray-300 p-2 rounded"></i>
-                            <i class="fab fa-chrome text-green-500 text-2xl hover:bg-gray-300 p-2 rounded"></i>
-                            <div class="flex-1 h-full"></div> <!-- 빈 공간 -->
-                        </div>
-                        
-                        <!-- 3. 시계와 날짜 -->
-                        <div onclick="checkQuiz(3, this)" class="h-full flex flex-col items-center justify-center px-6 border-l border-gray-300 cursor-pointer hover:bg-white transition-colors text-sm text-gray-700 font-bold" title="여기가 시계와 날짜일까요?">
-                            <span>12:00 PM</span>
-                            <span>2024-05-20</span>
-                        </div>
-                        
-                    </div>
-                </div>
-
-                <div id="quiz-msg" class="mt-6 text-xl font-bold h-10 text-gray-500">사진의 요소를 클릭해보세요!</div>
-            </div>
-
-            <button id="start-mission-btn" disabled class="mt-10 w-full py-5 rounded-full bg-gray-300 text-gray-500 font-black text-2xl cursor-not-allowed transition-all" onclick="startApp()">
-                화면 요소를 모두 확인하면 시작할 수 있어요!
-            </button>
         </div>
+
+        <!-- 오늘 배울 내용: 단원 제목 타이핑으로 변경 -->
+        <div class="grid grid-cols-1 gap-6 mb-10">
+            <div
+                class="bg-blue-50 p-8 rounded-3xl border-2 border-blue-200 shadow-sm flex flex-col md:flex-row items-center gap-8">
+                <div class="flex-1 w-full space-y-6">
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center justify-between font-black text-2xl text-blue-700">
+                            <span>01 화면 설정하기</span>
+                            <i id="check-type-1" class="fas fa-check-circle hidden"></i>
+                        </div>
+                        <input type="text" oninput="checkTyping(this, '03 화면 설정하기', 1)"
+                            class="w-full px-6 py-4 rounded-2xl border-2 border-blue-200 text-xl focus:outline-none focus:ring-4 focus:ring-blue-300"
+                            placeholder="위의 제목을 똑같이 타이핑해 보세요" autocomplete="off">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center justify-between font-black text-2xl text-green-700">
+                            <span>02 창 다루기</span>
+                            <i id="check-type-2" class="fas fa-check-circle hidden"></i>
+                        </div>
+                        <input type="text" oninput="checkTyping(this, '04 창 다루기', 2)"
+                            class="w-full px-6 py-4 rounded-2xl border-2 border-green-200 text-xl focus:outline-none focus:ring-4 focus:ring-green-300"
+                            placeholder="위의 제목을 똑같이 타이핑해 보세요" autocomplete="off">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center justify-between font-black text-2xl text-yellow-700">
+                            <span>03 파일과 폴더 관리하기</span>
+                            <i id="check-type-3" class="fas fa-check-circle hidden"></i>
+                        </div>
+                        <input type="text" oninput="checkTyping(this, '05 파일과 폴더 관리하기', 3)"
+                            class="w-full px-6 py-4 rounded-2xl border-2 border-yellow-200 text-xl focus:outline-none focus:ring-4 focus:ring-yellow-300"
+                            placeholder="위의 제목을 똑같이 타이핑해 보세요" autocomplete="off">
+                    </div>
+                </div>
+                <div class="w-full md:w-80 bg-white p-6 rounded-2xl border border-gray-100 shadow-inner">
+                    <p class="text-sm font-bold text-gray-400 mb-4 tracking-tighter">이 단원들을 모두 마스터하면<br>페파가 선물을 줄 거예요! ✨
+                    </p>
+                    <ul class="text-xs space-y-2 text-gray-500 font-medium">
+                        <li>• 배경화면과 아이콘 크기 바꾸기</li>
+                        <li>• 창을 자유자재로 움직이고 조절하기</li>
+                        <li>• 파일과 폴더를 만들고 정리하기</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-gray-100 p-8 rounded-3xl text-center">
+            <p class="text-lg font-bold mb-6">💡 마우스로 아래 사진에서 [시작 버튼], [작업 표시줄 빈 공간], [시계와 날짜]를 찾아 클릭해 보세요!</p>
+
+            <div
+                style="position: relative; width: 100%; border: 4px solid #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); background: #f3f4f6;">
+
+                <!-- HTML로 구현한 가짜 작업표시줄 -->
+                <div class="flex items-center w-full h-16 bg-gray-200 border-t border-gray-300">
+
+                    <!-- 1. 시작 버튼 -->
+                    <div onclick="checkQuiz(1, this)"
+                        class="h-full flex px-6 items-center justify-center cursor-pointer hover:bg-white transition-colors"
+                        title="여기가 시작 버튼일까요?">
+                        <i class="fab fa-windows text-blue-600 text-3xl"></i>
+                    </div>
+
+                    <!-- 2. 작업 표시줄 (앱 아이콘들 및 빈 공간) -->
+                    <div onclick="checkQuiz(2, this)"
+                        class="flex-1 h-full flex items-center px-4 cursor-pointer hover:bg-white transition-colors gap-4"
+                        title="이곳이 작업 표시줄일까요?">
+                        <i class="fas fa-folder text-yellow-400 text-2xl hover:bg-gray-300 p-2 rounded"></i>
+                        <i class="fab fa-chrome text-green-500 text-2xl hover:bg-gray-300 p-2 rounded"></i>
+                        <div class="flex-1 h-full"></div> <!-- 빈 공간 -->
+                    </div>
+
+                    <!-- 3. 시계와 날짜 -->
+                    <div onclick="checkQuiz(3, this)"
+                        class="h-full flex flex-col items-center justify-center px-6 border-l border-gray-300 cursor-pointer hover:bg-white transition-colors text-sm text-gray-700 font-bold"
+                        title="여기가 시계와 날짜일까요?">
+                        <span>12:00 PM</span>
+                        <span>2024-05-20</span>
+                    </div>
+
+                </div>
+            </div>
+
+            <div id="quiz-msg" class="mt-6 text-xl font-bold h-10 text-gray-500">사진의 요소를 클릭해보세요!</div>
+        </div>
+
+        <button id="start-mission-btn" disabled
+            class="mt-10 w-full py-5 rounded-full bg-gray-300 text-gray-500 font-black text-2xl cursor-not-allowed transition-all"
+            onclick="startApp()">
+            화면 요소를 모두 확인하면 시작할 수 있어요!
+        </button>
+    </div>
     </div>
 
     <!-- [2] 메인 바탕화면 -->
@@ -307,24 +362,31 @@
 
     <!-- [4] 작업 표시줄 -->
     <nav class="taskbar px-2">
-        <div class="w-10 h-10 flex items-center justify-center text-blue-600 text-xl cursor-pointer hover:bg-gray-200 rounded" onclick="handleStartClick()"><i class="fab fa-windows"></i></div>
+        <div class="w-10 h-10 flex items-center justify-center text-blue-600 text-xl cursor-pointer hover:bg-gray-200 rounded"
+            onclick="handleStartClick()"><i class="fab fa-windows"></i></div>
         <div class="flex-1 flex gap-2 px-2" id="taskbar-apps"></div>
-        <div class="px-3 text-[11px] text-gray-600 font-bold text-center border-l cursor-pointer" onclick="handleClock()">
+        <div class="px-3 text-[11px] text-gray-600 font-bold text-center border-l cursor-pointer"
+            onclick="handleClock()">
             <div id="clock-time">12:00</div>
             <div id="clock-date">2024-05-20</div>
         </div>
     </nav>
 
     <!-- [5] 결과 화면 -->
-    <div id="result-screen" class="fixed inset-0 bg-pink-400 z-[9999] hidden flex flex-col items-center justify-center text-white text-center">
+    <div id="result-screen"
+        class="fixed inset-0 bg-pink-400 z-[9999] hidden flex flex-col items-center justify-center text-white text-center">
         <!-- 배경 이미지 (선생님이 준비하신 all.jpg) -->
-        <img id="all-jpg" src="images/peppa/all.jpg" class="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none" onerror="this.style.display='none'">
+        <img id="all-jpg" src="images/peppa/all.jpg"
+            class="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
+            onerror="this.style.display='none'">
         <div class="relative z-10">
             <div class="text-9xl mb-10 animate-bounce">👑</div>
             <h1 class="text-7xl font-black mb-6 drop-shadow-lg">윈도우 마스터 등극!</h1>
-            <p class="text-2xl mb-12 opacity-90 font-bold bg-pink-600/50 py-3 px-8 rounded-full inline-block">페파와 친구들이 당신의 실력에 깜짝 놀랐어요!</p>
+            <p class="text-2xl mb-12 opacity-90 font-bold bg-pink-600/50 py-3 px-8 rounded-full inline-block">페파와 친구들이
+                당신의 실력에 깜짝 놀랐어요!</p>
             <br>
-            <button onclick="location.reload()" class="bg-white text-pink-500 px-12 py-5 rounded-full text-2xl font-black hover:scale-110 transition-transform shadow-2xl">
+            <button onclick="location.reload()"
+                class="bg-white text-pink-500 px-12 py-5 rounded-full text-2xl font-black hover:scale-110 transition-transform shadow-2xl">
                 처음부터 다시하기
             </button>
         </div>
@@ -345,12 +407,14 @@
     </div>
 
     <div id="target-zone" class="target-zone"></div>
-    <div id="success-pop" class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-white px-10 py-5 rounded-full font-black text-3xl shadow-2xl z-[8000] hidden animate-bounce">성공이야! ✨</div>
+    <div id="success-pop"
+        class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-yellow-400 text-white px-10 py-5 rounded-full font-black text-3xl shadow-2xl z-[8000] hidden animate-bounce">
+        성공이야! ✨</div>
 
     <script>
         // --- 프리로드 (Preload) ---
         const preload = () => {
-            const files = ['all.jpg', ...Array.from({length:12}, (_,i)=>`${i+1}.png`)];
+            const files = ['all.jpg', ...Array.from({ length: 12 }, (_, i) => `${i + 1}.png`)];
             files.forEach(f => {
                 const img = new Image();
                 img.src = `images/peppa/${f}`;
@@ -381,7 +445,7 @@
             { img: 'images/peppa/4.png', name: '조이', msg: "내 PC 아이콘을 아래 작업표시줄로 끌어다 고정해보자!", type: 'pin' },
             { img: 'images/peppa/5.png', name: '레베카', msg: "우클릭 후 [개인 설정 > 배경 화면]을 눌러 바탕화면을 바꿔볼래?", type: 'theme' },
             { img: 'images/peppa/6.png', name: '에밀리', msg: "우클릭 후 [개인 설정 > 화면 보호기]를 눌러 안전하게 지켜주자!", type: 'screen_saver' },
-            
+
             // 04 창 다루기 (캐릭터 7, 8, 9, 10, 11, 12, 1, 2)
             { img: 'images/peppa/7.png', name: '페드로', msg: "[내 PC]를 '더블 클릭'해서 창을 시원하게 열어줘!", type: 'run', target: '내 PC' },
             { img: 'images/peppa/8.png', name: '리차드', msg: "창 오른쪽 아래 모세리를 잡고 창 크기를 마음껏 조절해봐!", type: 'resize' },
@@ -391,7 +455,7 @@
             { img: 'images/peppa/12.png', name: '페파', msg: "뒤로 가버린 [내 PC] 창을 클릭해서 다시 앞으로 가져와봐!", type: 'focus' },
             { img: 'images/peppa/1.png', name: '캔디', msg: "창의 [－] 버튼을 눌러서 작업 표시줄로 쏙 숨겨줘!", type: 'minimize' },
             { img: 'images/peppa/2.png', name: '수지', msg: "창의 [✕] 버튼을 눌러서 창을 시원하게 닫아볼까?", type: 'close' },
-            
+
             // 05 파일과 폴더 관리하기 (캐릭터 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
             { img: 'images/peppa/3.png', name: '대니', msg: "파일은 공부한 내용이고, 폴더는 서랍장 같은 거야! (클릭하면 다음!)", type: 'chat' },
             { img: 'images/peppa/4.png', name: '조이', msg: "우클릭 - [새로 만들기]를 눌러 '새 폴더'를 만들어봐!", type: 'new_folder' },
@@ -454,7 +518,8 @@
                 const el = document.createElement('div');
                 el.className = `desktop-icon ${icon.large ? 'large' : ''}`;
                 el.id = 'icon-' + icon.id;
-                el.style.left = icon.x + 'px'; el.style.top = icon.y + 'px';
+                el.style.left = icon.x + 'px';
+                el.style.top = icon.y + 'px';
                 el.innerHTML = `
                     <i class="fas ${icon.icon} ${icon.color} text-4xl mb-1"></i>
                     ${icon.shortcut ? '<div class="shortcut-badge"><i class="fas fa-long-arrow-alt-right"></i></div>' : ''}
@@ -462,12 +527,14 @@
                 `;
                 el.onmousedown = (e) => {
                     if (e.button !== 0) return;
-                    isDrag = true; activeObj = el;
-                    offset.x = e.clientX - el.offsetLeft; offset.y = e.clientY - el.offsetTop;
+                    isDrag = true;
+                    activeObj = el;
+                    offset.x = e.clientX - el.offsetLeft;
+                    offset.y = e.clientY - el.offsetTop;
                     el.style.zIndex = ++zIndexBase;
                     e.stopPropagation();
                 };
-                el.ondblclick = () => { if (['pc','folder','trash','file'].includes(icon.id)) openWin(icon.title); };
+                el.ondblclick = () => { if (['pc', 'folder', 'trash', 'file'].includes(icon.id)) openWin(icon.title); };
                 desk.appendChild(el);
             });
         }
@@ -477,7 +544,7 @@
             if (!m) return;
             document.getElementById('character-emoji').innerHTML = `<img src="${m.img}" style="height: 110px; object-fit: contain;" onerror="this.outerHTML='🐷'">`;
             document.getElementById('peppa-text').innerText = `${m.name}: ${m.msg}`;
-            
+
             const tz = document.getElementById('target-zone');
             tz.style.display = 'none';
             if (m.type === 'start_bar_click') {
@@ -507,9 +574,9 @@
             const id = 'win-' + Math.random().toString(36).substr(2, 5);
             const win = document.createElement('div');
             win.className = 'window flex flex-col';
-            win.id = id; win.style.left = (100 + windows.length*30)+'px'; win.style.top = (100 + windows.length*30)+'px'; win.style.zIndex = ++zIndexBase;
+            win.id = id; win.style.left = (100 + windows.length * 30) + 'px'; win.style.top = (100 + windows.length * 30) + 'px'; win.style.zIndex = ++zIndexBase;
             win.onmousedown = () => win.style.zIndex = ++zIndexBase;
-            
+
             win.innerHTML = `
                 <div class="window-header flex justify-between items-center px-3 py-1 bg-gray-100 cursor-move rounded-t-lg">
                     <span class="text-xs font-bold">${title}</span>
@@ -531,7 +598,7 @@
             document.getElementById('desktop').appendChild(win);
             windows.push(win);
             setupWinDrag(win);
-            
+
             if (missions[currentStep].type === 'run' && title === missions[currentStep].target) completeMission();
             if (missions[currentStep].type === 'focus') completeMission();
         }
@@ -557,7 +624,7 @@
                 if (missions[currentStep].type === 'resize') completeMission();
             };
             document.addEventListener('mousemove', doResize);
-            document.addEventListener('mouseup', stopResize, {once:true});
+            document.addEventListener('mouseup', stopResize, { once: true });
         }
 
         function toggleView(id) {
@@ -566,10 +633,10 @@
             if (missions[currentStep].type === 'view_change') completeMission();
         }
 
-        function closeWin(id) { 
-            document.getElementById(id).remove(); windows = windows.filter(w=>w.id!==id); 
-            if (missions[currentStep].type === 'close') completeMission(); 
-            if (missions[currentStep].type === 'close_all' && windows.length === 0) completeMission(); 
+        function closeWin(id) {
+            document.getElementById(id).remove(); windows = windows.filter(w => w.id !== id);
+            if (missions[currentStep].type === 'close') completeMission();
+            if (missions[currentStep].type === 'close_all' && windows.length === 0) completeMission();
         }
         function minimizeWin(id) { document.getElementById(id).style.display = 'none'; if (missions[currentStep].type === 'minimize') completeMission(); }
         function maximizeWin(id) { const w = document.getElementById(id); w.style.width = '100%'; w.style.height = 'calc(100vh - 45px)'; w.style.left = '0'; w.style.top = '0'; }
@@ -585,28 +652,54 @@
 
         document.onmouseup = (e) => {
             if (!isDrag || !activeObj) return;
+
             const m = missions[currentStep];
+            const iconId = activeObj.id.replace('icon-', '');
+            const iconData = icons.find(i => i.id === iconId);
+
+            // 1. 아이콘 위치 업데이트 및 작업표시줄 뒤로 숨음 방지
+            if (iconData) {
+                iconData.x = activeObj.offsetLeft;
+                iconData.y = activeObj.offsetTop;
+
+                // 작업표시줄(하단 45px) 뒤로 숨는 경우 자동으로 올려줌
+                if (iconData.y > window.innerHeight - 80) {
+                    iconData.y = window.innerHeight - 110;
+                    activeObj.style.top = iconData.y + 'px';
+                }
+            }
+
+            // 2. 미션 성공 여부 체크
             if (m.type === 'icon_move' && activeObj.id === 'icon-pc') {
                 const rect = activeObj.getBoundingClientRect();
-                if (rect.left > window.innerWidth*0.4 && rect.top > window.innerHeight*0.35) completeMission();
+                if (rect.left > window.innerWidth * 0.4 && rect.top > window.innerHeight * 0.35) completeMission();
             }
             if (m.type === 'window_move' && activeObj.classList.contains('window')) {
-                if (activeObj.offsetLeft > window.innerWidth*0.4) completeMission();
+                if (activeObj.offsetLeft > window.innerWidth * 0.4) completeMission();
             }
             if (m.type === 'snap' && e.clientX > window.innerWidth - 10) {
-                activeObj.style.left = '50%'; activeObj.style.top = '0'; activeObj.style.width = '50%'; activeObj.style.height = 'calc(100vh - 45px)';
+                activeObj.style.left = '50%';
+                activeObj.style.top = '0';
+                activeObj.style.width = '50%';
+                activeObj.style.height = 'calc(100vh - 45px)';
                 completeMission();
             }
             if (m.type === 'pin' && e.clientY > window.innerHeight - 50) {
-                const icon = icons.find(i=>i.id===(activeObj.id.split('-')[1]));
+                const icon = icons.find(i => i.id === (activeObj.id.split('-')[1]));
                 document.getElementById('taskbar-apps').innerHTML += `<div class="w-10 h-full flex items-center justify-center bg-white/20"><i class="fas ${icon.icon} ${icon.color}"></i></div>`;
                 completeMission();
+                
+                // 작업표시줄에 핀을 꽂은 후에는 아이콘을 다시 제자리 혹은 안전한 위치로 이동
+                if (iconData) { 
+                    iconData.y = window.innerHeight - 110; 
+                    activeObj.style.top = iconData.y + 'px';
+                }
             }
             if (m.type === 'move_to_folder' && activeObj.id === 'icon-file') {
                 const folderIcon = document.getElementById('icon-folder').getBoundingClientRect();
-                if (Math.abs(e.clientX - (folderIcon.left+40)) < 60 && Math.abs(e.clientY - (folderIcon.top+40)) < 60) {
+                if (Math.abs(e.clientX - (folderIcon.left + 40)) < 60 && Math.abs(e.clientY - (folderIcon.top + 40)) < 60) {
                     activeObj.style.display = 'none';
-                    icons.find(i=>i.id==='file').hiddenInDesktop = true;
+                    icons.find(i => i.id === 'file').hiddenInDesktop = true;
                     const content = document.getElementById('folder-content');
                     if (content) content.innerHTML += `<div class="desktop-icon" id="file-in-folder"><i class="fas fa-file-alt text-gray-400 text-3xl"></i><span class="text-[10px]">파일.txt</span></div>`;
                     completeMission();
@@ -614,11 +707,13 @@
             }
             if (m.type === 'delete' && (activeObj.id.includes('file') || activeObj.id.includes('folder'))) {
                 const trash = document.getElementById('icon-trash').getBoundingClientRect();
-                if (Math.abs(e.clientX - (trash.left+40)) < 60 && Math.abs(e.clientY - (trash.top+40)) < 60) {
-                    activeObj.style.display = 'none'; completeMission();
+                if (Math.abs(e.clientX - (trash.left + 40)) < 60 && Math.abs(e.clientY - (trash.top + 40)) < 60) {
+                    activeObj.style.display = 'none';
+                    completeMission();
                 }
             }
-            isDrag = false; activeObj = null;
+            isDrag = false;
+            activeObj = null;
         };
 
         // --- 우클릭 및 추가 기능 ---
@@ -626,22 +721,22 @@
             e.preventDefault();
             const menu = document.getElementById('context-menu');
             menu.style.display = 'block'; menu.style.left = e.clientX + 'px'; menu.style.top = e.clientY + 'px';
-            
+
             document.getElementById('menu-shortcut').classList.toggle('hidden', missions[currentStep].type !== 'shortcut');
             document.getElementById('menu-paste').classList.toggle('hidden', !copiedItemData || missions[currentStep].type !== 'copy_paste');
             return false;
         }
         document.onclick = () => document.getElementById('context-menu').style.display = 'none';
 
-        function toggleIconSize() { icons.forEach(i=>i.large=!i.large); renderDesktop(); if (missions[currentStep].type === 'large_icons') completeMission(); }
-        function refreshDesktop() { document.body.style.opacity='0.5'; setTimeout(()=>{document.body.style.opacity='1'; if(missions[currentStep].type==='refresh') completeMission();},200); }
-        function createNewFolder() { icons.push({ id:'folder', title:'새 폴더', icon:'fa-folder', color:'text-yellow-400', x:200, y:200 }); renderDesktop(); if(missions[currentStep].type==='new_folder') completeMission(); }
-        function createNewFile() { icons.push({ id:'file', title:'파일.txt', icon:'fa-file-alt', color:'text-gray-300', x:250, y:150 }); renderDesktop(); if(missions[currentStep].type==='new_file') completeMission(); }
-        function createShortcut() { icons.push({ id:'sc', title:'내 PC - 바로 가기', icon:'fa-desktop', color:'text-blue-500', x:150, y:200, shortcut:true }); renderDesktop(); completeMission(); }
-        function changeTheme() { document.body.style.background='#e0f2fe'; if(missions[currentStep].type==='theme') completeMission(); }
-        function setScreenSaver() { 
-            const ss = document.createElement('div'); ss.className='fixed inset-0 bg-black z-[9000] flex items-center justify-center text-white text-4xl animate-pulse'; ss.innerText='화면 보호기 작동 중... 마우스 클릭 시 종료';
-            document.body.appendChild(ss); ss.onclick=()=>{ss.remove(); if(missions[currentStep].type==='screen_saver') completeMission();};
+        function toggleIconSize() { icons.forEach(i => i.large = !i.large); renderDesktop(); if (missions[currentStep].type === 'large_icons') completeMission(); }
+        function refreshDesktop() { document.body.style.opacity = '0.5'; setTimeout(() => { document.body.style.opacity = '1'; if (missions[currentStep].type === 'refresh') completeMission(); }, 200); }
+        function createNewFolder() { icons.push({ id: 'folder', title: '새 폴더', icon: 'fa-folder', color: 'text-yellow-400', x: 200, y: 200 }); renderDesktop(); if (missions[currentStep].type === 'new_folder') completeMission(); }
+        function createNewFile() { icons.push({ id: 'file', title: '파일.txt', icon: 'fa-file-alt', color: 'text-gray-300', x: 250, y: 150 }); renderDesktop(); if (missions[currentStep].type === 'new_file') completeMission(); }
+        function createShortcut() { icons.push({ id: 'sc', title: '내 PC - 바로 가기', icon: 'fa-desktop', color: 'text-blue-500', x: 150, y: 200, shortcut: true }); renderDesktop(); completeMission(); }
+        function changeTheme() { document.body.style.background = '#e0f2fe'; if (missions[currentStep].type === 'theme') completeMission(); }
+        function setScreenSaver() {
+            const ss = document.createElement('div'); ss.className = 'fixed inset-0 bg-black z-[9000] flex items-center justify-center text-white text-4xl animate-pulse'; ss.innerText = '화면 보호기 작동 중... 마우스 클릭 시 종료';
+            document.body.appendChild(ss); ss.onclick = () => { ss.remove(); if (missions[currentStep].type === 'screen_saver') completeMission(); };
         }
         function pasteItem() { if (copiedItemData) { const folderBody = document.getElementById('folder-content'); if (folderBody) { folderBody.innerHTML += copiedItemData; completeMission(); copiedItemData = null; } } }
 
@@ -658,8 +753,9 @@
             }
         };
 
-        function handleStartClick() { if(missions[currentStep] && missions[currentStep].type==='start_bar_click') completeMission(); else alert("시작 메뉴가 열렸습니다 (시뮬레이션)"); }
+        function handleStartClick() { if (missions[currentStep] && missions[currentStep].type === 'start_bar_click') completeMission(); else alert("시작 메뉴가 열렸습니다 (시뮬레이션)"); }
         function handleClock() { alert("시계와 달력이 열렸습니다 (시뮬레이션)"); }
     </script>
 </body>
+
 </html>
