@@ -159,11 +159,12 @@
 
         .target-zone {
             position: absolute;
-            border: 4px dashed rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.1);
+            border: 4px dashed rgba(236, 72, 153, 0.6);
+            background: rgba(236, 72, 153, 0.1);
             pointer-events: none;
             display: none;
             z-index: 1;
+            border-radius: 20px;
         }
 
         .character-img {
@@ -636,13 +637,13 @@
             { img: 'images/peppa/6.png', name: '에밀리', msg: "우클릭 후 [개인 설정 > 화면 보호기]를 눌러 안전하게 지켜주자!", type: 'screen_saver' },
 
             // 02 창 다루기 (캐릭터 7, 8, 9, 10, 11, 12, 1, 2)
-            { img: 'images/peppa/7.png', name: '페드로', msg: "[내 PC]를 '더블 클릭'해서 창을 시원하게 열어줘!", type: 'run', target: '내 PC' },
-            { img: 'images/peppa/8.png', name: '리차드', msg: "창 오른쪽 아래 모세리를 잡고 창 크기를 마음껏 조절해봐!", type: 'resize' },
-            { img: 'images/peppa/9.png', name: '조지', msg: "창 윗부분을 잡고 화면 오른쪽 아래로 슥 옮겨볼까?", type: 'window_move' },
-            { img: 'images/peppa/10.png', name: '페파 요정', msg: "창을 화면 '오른쪽 끝'으로 밀어 딱 붙여봐! (스냅 기능)", type: 'snap' },
-            { img: 'images/peppa/11.png', name: '페파 공주', msg: "창의 [－] 버튼을 눌러서 작업 표시줄로 쏙 숨겨줘!", type: 'minimize' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "[내 PC]를 '더블 클릭'해서 창을 시원하게 열어줘!", type: 'run', target: '내 PC' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "창 오른쪽 아래 모서리를 잡고 창 크기를 마음껏 조절해봐!", type: 'resize' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "창 윗부분을 잡고 화면 오른쪽 아래로 슥 옮겨볼까?", type: 'window_move' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "창을 화면 '오른쪽 끝'으로 밀어 딱 붙여봐! (스냅 기능)", type: 'snap' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "창의 [－] 버튼을 눌러서 작업 표시줄로 쏙 숨겨줘!", type: 'minimize' },
             { img: 'images/peppa/12.png', name: '페파', msg: "작업 표시줄에 숨은 창을 다시 클릭해서 앞으로 가져와봐!", type: 'focus' },
-            { img: 'images/peppa/1.png', name: '캔디', msg: "창의 [✕] 버튼을 눌러서 창을 시원하게 닫아볼까?", type: 'close' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "창의 [✕] 버튼을 눌러서 창을 시원하게 닫아볼까?", type: 'close' },
 
             // 03 파일과 폴더 관리하기 (캐릭터 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)
             { img: 'images/peppa/2.png', name: '수지', msg: "파일은 공부한 내용이고, 폴더는 서랍장 같은 거야! (클릭하면 다음!)", type: 'chat' },
@@ -968,14 +969,12 @@
 
             // 2. 미션 성공 여부 체크
             if (m.type === 'icon_move' && activeObj.dataset.type === 'pc') {
-                const rect = activeObj.getBoundingClientRect();
-                if (rect.left > window.innerWidth * 0.4 && rect.top > window.innerHeight * 0.35) completeMission();
+                if (e.clientX > window.innerWidth * 0.4 && e.clientY > window.innerHeight * 0.4) completeMission();
             }
             if (m.type === 'window_move' && activeObj.classList.contains('window')) {
-                const rect = activeObj.getBoundingClientRect();
-                if (rect.right > window.innerWidth * 0.6 && rect.bottom > window.innerHeight * 0.6) completeMission();
+                if (e.clientX > window.innerWidth * 0.6 && e.clientY > window.innerHeight * 0.5) completeMission();
             }
-            if (m.type === 'snap' && e.clientX > window.innerWidth - 30) {
+            if (m.type === 'snap' && e.clientX > window.innerWidth - 50) {
                 activeObj.style.left = '50%';
                 activeObj.style.top = '0';
                 activeObj.style.width = '50%';
