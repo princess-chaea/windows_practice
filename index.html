@@ -159,12 +159,18 @@
 
         .target-zone {
             position: absolute;
-            border: 4px dashed rgba(236, 72, 153, 0.6);
-            background: rgba(236, 72, 153, 0.1);
+            border: 4px dashed rgba(236, 72, 153, 0.8);
+            background: rgba(236, 72, 153, 0.2);
             pointer-events: none;
             display: none;
-            z-index: 1;
+            z-index: 10000;
             border-radius: 20px;
+            animation: pulse-border 1.5s infinite;
+        }
+        @keyframes pulse-border {
+            0% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(1); opacity: 0.8; }
         }
 
         .character-img {
@@ -500,7 +506,7 @@
             <div class="start-item" onclick="startAppSim('게임센터')"><i class="fas fa-gamepad text-green-400"></i> 게임</div>
         </div>
         <div class="border-t pt-4 mt-2 flex justify-between items-center">
-            <div class="start-item text-gray-600 !p-2" onclick="location.reload()"><i class="fas fa-power-off"></i> 다시 시작</div>
+            <div class="start-item text-gray-600 !p-2" onclick="handleRestart()"><i class="fas fa-power-off"></i> 다시 시작</div>
             <div class="start-item text-gray-600 !p-2" onclick="handleShutdown()"><i class="fas fa-sign-out-alt"></i> 시스템 종료</div>
         </div>
     </div>
@@ -552,7 +558,7 @@
         class="fixed inset-0 bg-pink-400 z-[9999] hidden flex flex-col items-center justify-center text-white text-center">
         <!-- 배경 이미지 (선생님이 준비하신 all.jpg) -->
         <img id="all-jpg" src="images/peppa/all.jpg"
-            class="absolute inset-0 w-full h-full object-cover opacity-30 pointer-events-none"
+            class="absolute inset-0 w-full h-full object-cover opacity-80 pointer-events-none"
             onerror="this.style.display='none'">
         <div class="relative z-10">
             <div class="text-9xl mb-10 animate-bounce">👑</div>
@@ -570,12 +576,22 @@
         </div>
     </div>
 
-    <!-- 종료 시뮬레이션 모달 -->
+    <!-- 앱 실행 시뮬레이션 모달 -->
+    <div id="app-modal" class="shutdown-modal" style="display: none;">
+        <div class="bg-white p-8 rounded-3xl text-gray-800 flex flex-col items-center shadow-2xl scale-in-center">
+            <div id="app-modal-icon" class="text-6xl mb-4">🎨</div>
+            <h2 id="app-modal-title" class="text-2xl font-black mb-2">그림판</h2>
+            <p id="app-modal-msg" class="text-gray-500 mb-6 font-medium text-sm text-center">프로그램을 실행하고 있습니다...<br>이것은 학습용 시뮬레이션입니다! ✨</p>
+            <button onclick="closeAppModal()" class="bg-pink-500 text-white px-8 py-2 rounded-full font-bold hover:bg-pink-600 transition">확인</button>
+        </div>
+    </div>
+
+    <!-- 종료/다시 시작 시뮬레이션 모달 -->
     <div id="shutdown-modal" class="shutdown-modal">
-        <i class="fas fa-spinner fa-spin text-5xl mb-6"></i>
-        <h2 class="text-3xl font-black mb-2">시스템 종료 중...</h2>
-        <p class="text-gray-400">페파 피그 에디션을 종료하고 있습니다.</p>
-        <button onclick="closeShutdownModal()"
+        <i id="power-icon" class="fas fa-spinner fa-spin text-5xl mb-6"></i>
+        <h2 id="power-title" class="text-3xl font-black mb-2">시스템 종료 중...</h2>
+        <p id="power-msg" class="text-gray-400">페파 피그 에디션을 종료하고 있습니다.</p>
+        <button id="power-btn" onclick="closeShutdownModal()"
             class="mt-8 px-6 py-2 border border-white/30 rounded-full hover:bg-white/10 transition">중단하기</button>
     </div>
 
@@ -650,11 +666,11 @@
             { img: 'images/peppa/2.png', name: '수지', msg: "파일은 공부한 내용이고, 폴더는 서랍장 같은 거야! (클릭하면 다음!)", type: 'chat' },
             { img: 'images/peppa/3.png', name: '대니', msg: "우클릭 - [새로 만들기]를 눌러 '새 폴더'를 만들어봐!", type: 'new_folder' },
             { img: 'images/peppa/4.png', name: '조이', msg: "우클릭 - [새로 만들기]를 눌러 '텍스트 문서'도 만들어볼까?", type: 'new_file' },
-            { img: 'images/peppa/5.png', name: '레베카', msg: "만든 문서를 [새 폴더] 안으로 드래그해서 쏙 넣어줘!", type: 'move_to_folder' },
+            { img: 'images/peppa/5.png', name: '레베카', msg: "문서를 [새 폴더] 위(분홍 점선 박스)로 드래그해서 쏙 넣어줘!", type: 'move_to_folder' },
             { img: 'images/peppa/6.png', name: '에밀리', msg: "이제 '새 폴더'를 열고, [보기 변경] 버튼을 눌러 목록으로 봐보자!", type: 'view_change' },
             { img: 'images/peppa/7.png', name: '페드로', msg: "폴더 안의 파일을 우클릭해서 [복사하기]를 눌러봐!", type: 'copy_start' },
             { img: 'images/peppa/8.png', name: '리차드', msg: "빈 공간에 우클릭해서 [붙여넣기]를 하면 파일이 하나 더 생겨!", type: 'copy_paste' },
-            { img: 'images/peppa/9.png', name: '조지', msg: "드래그해서 파일들을 [휴지통]에 쏙 버려볼까?", type: 'delete' },
+            { img: 'images/peppa/9.png', name: '조지', msg: "파일을 [휴지통] 위(분홍 점선 박스)로 드래그해서 버려볼까?", type: 'delete' },
             { img: 'images/peppa/10.png', name: '페파 요정', msg: "바탕화면 우클릭 후 [정렬]을 눌러 아이콘들을 줄 맞춰보자!", type: 'refresh' },
             { img: 'images/peppa/11.png', name: '페파 공주', msg: "열려있는 모든 창의 [✕]를 눌러 종료해줘!", type: 'close_all' },
             
@@ -780,6 +796,18 @@
                 tz.style.display = 'block'; tz.style.left = '60%'; tz.style.top = '50%'; tz.style.width = '35%'; tz.style.height = '40%';
             } else if (m.type === 'snap') {
                 tz.style.display = 'block'; tz.style.left = 'auto'; tz.style.right = '0'; tz.style.top = '0'; tz.style.width = '50px'; tz.style.height = 'calc(100vh - 45px)';
+            } else if (m.type === 'move_to_folder') {
+                const folderIcon = document.querySelector('.desktop-icon[data-type="folder"]');
+                if (folderIcon) {
+                    const rect = folderIcon.getBoundingClientRect();
+                    tz.style.display = 'block'; tz.style.left = (rect.left - 10) + 'px'; tz.style.top = (rect.top - 10) + 'px'; tz.style.width = '100px'; tz.style.height = '100px';
+                }
+            } else if (m.type === 'delete') {
+                const trashIcon = document.querySelector('.desktop-icon[data-type="trash"]');
+                if (trashIcon) {
+                    const rect = trashIcon.getBoundingClientRect();
+                    tz.style.display = 'block'; tz.style.left = (rect.left - 10) + 'px'; tz.style.top = (rect.top - 10) + 'px'; tz.style.width = '100px'; tz.style.height = '100px';
+                }
             } else if (m.type === 'chat') {
                 document.getElementById('peppa-guide').onclick = completeMission;
             } else {
@@ -1204,7 +1232,7 @@
                 const folderIcon = document.querySelector('.desktop-icon[data-type="folder"]');
                 if (folderIcon) {
                     const rect = folderIcon.getBoundingClientRect();
-                    if (Math.abs(e.clientX - (rect.left + 40)) < 60 && Math.abs(e.clientY - (rect.top + 40)) < 60) {
+                    if (Math.abs(e.clientX - (rect.left + 40)) < 80 && Math.abs(e.clientY - (rect.top + 40)) < 80) {
                         const folderUid = folderIcon.id.replace('icon-', '');
                         const folderData = icons.find(i => i.uid === folderUid);
                         if (folderData && iconData) {
@@ -1212,6 +1240,10 @@
                             iconData.hiddenInDesktop = true;
                             if (!folderData.contents) folderData.contents = [];
                             folderData.contents.push({ uid: iconData.uid, title: iconData.title, icon: iconData.icon, color: iconData.color });
+                            completeMission();
+                        } else {
+                            // 데이터가 없어도(동적 생성된 파일 등) 일단 시각적으로는 처리
+                            activeObj.style.display = 'none';
                             completeMission();
                         }
                     }
@@ -1221,7 +1253,7 @@
                 const trashIcon = document.querySelector('.desktop-icon[data-type="trash"]');
                 if (trashIcon) {
                     const trash = trashIcon.getBoundingClientRect();
-                    if (Math.abs(e.clientX - (trash.left + 40)) < 60 && Math.abs(e.clientY - (trash.top + 40)) < 60) {
+                    if (Math.abs(e.clientX - (trash.left + 40)) < 80 && Math.abs(e.clientY - (trash.top + 40)) < 80) {
                         activeObj.style.display = 'none'; activeObj.remove(); if (iconData) iconData.hiddenInDesktop = true; completeMission();
                     }
                 }
@@ -1230,9 +1262,24 @@
         };
 
         function startAppSim(name) {
-            alert(name + '이(가) 실행됩니다 (시뮬레이션)');
+            const icons = { '그림판': '🎨', '메모장': '📄', '게임센터': '🎮' };
+            document.getElementById('app-modal-icon').innerText = icons[name] || '🚀';
+            document.getElementById('app-modal-title').innerText = name;
+            document.getElementById('app-modal').style.display = 'flex';
             if (missions[currentStep] && missions[currentStep].type === 'start_app_click') completeMission();
             togglePopup('start-menu');
+        }
+
+        function closeAppModal() { document.getElementById('app-modal').style.display = 'none'; }
+
+        function handleRestart() {
+            const modal = document.getElementById('shutdown-modal');
+            document.getElementById('power-icon').className = 'fas fa-sync-alt fa-spin text-5xl mb-6';
+            document.getElementById('power-title').innerText = '다시 시작 중...';
+            document.getElementById('power-msg').innerText = '시스템을 다시 시작하고 있습니다. 잠시만 기다려주세요.';
+            document.getElementById('power-btn').style.display = 'none';
+            modal.style.display = 'flex';
+            setTimeout(() => location.reload(), 2000);
         }
 
         function handleShutdown() {
@@ -1240,6 +1287,10 @@
                 completeMission();
                 togglePopup('start-menu');
             } else {
+                document.getElementById('power-icon').className = 'fas fa-spinner fa-spin text-5xl mb-6';
+                document.getElementById('power-title').innerText = '시스템 종료 중...';
+                document.getElementById('power-msg').innerText = '페파 피그 에디션을 종료하고 있습니다.';
+                document.getElementById('power-btn').style.display = 'block';
                 document.getElementById('shutdown-modal').style.display = 'flex';
             }
         }
