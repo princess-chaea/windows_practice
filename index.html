@@ -103,12 +103,12 @@
         .bubble {
             background: white;
             border: 3px solid var(--peppa-pink);
-            border-radius: 20px;
-            padding: 15px 20px;
-            margin-bottom: 10px;
+            border-radius: 25px;
+            padding: 20px 30px;
+            margin-bottom: 15px;
             position: relative;
-            max-width: 300px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            max-width: 450px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
         .bubble::after {
@@ -435,7 +435,7 @@
     <!-- [3] 캐릭터 가이드 UI -->
     <div id="peppa-guide" class="guide-character hidden">
         <div class="bubble">
-            <p id="peppa-text" class="text-sm font-bold text-gray-800 leading-relaxed"></p>
+            <p id="peppa-text" class="text-lg font-bold text-gray-800 leading-relaxed"></p>
         </div>
         <div id="character-emoji" class="character-img">🐷</div>
     </div>
@@ -472,9 +472,9 @@
             </div>
         </div>
         <div class="flex flex-col gap-1">
-            <div class="start-item" onclick="alert('그림판이 실행됩니다 (시뮬레이션)')"><i class="fas fa-paint-brush text-orange-400"></i> 그림판</div>
-            <div class="start-item" onclick="alert('메모장이 실행됩니다 (시뮬레이션)')"><i class="fas fa-file-alt text-blue-400"></i> 메모장</div>
-            <div class="start-item" onclick="alert('게임센터가 실행됩니다 (시뮬레이션)')"><i class="fas fa-gamepad text-green-400"></i> 게임</div>
+            <div class="start-item" onclick="startAppSim('그림판')"><i class="fas fa-paint-brush text-orange-400"></i> 그림판</div>
+            <div class="start-item" onclick="startAppSim('메모장')"><i class="fas fa-file-alt text-blue-400"></i> 메모장</div>
+            <div class="start-item" onclick="startAppSim('게임센터')"><i class="fas fa-gamepad text-green-400"></i> 게임</div>
         </div>
         <div class="border-t pt-4 mt-2 flex justify-between items-center">
             <div class="start-item text-gray-600 !p-2" onclick="location.reload()"><i class="fas fa-power-off"></i> 다시 시작</div>
@@ -620,7 +620,14 @@
             { img: 'images/peppa/8.png', name: '리차드', msg: "빈 공간에 우클릭해서 [붙여넣기]를 하면 파일이 하나 더 생겨!", type: 'copy_paste' },
             { img: 'images/peppa/9.png', name: '조지', msg: "드래그해서 파일들을 [휴지통]에 쏙 버려볼까?", type: 'delete' },
             { img: 'images/peppa/10.png', name: '페파 요정', msg: "바탕화면 우클릭 후 [정렬]을 눌러 아이콘들을 줄 맞춰보자!", type: 'refresh' },
-            { img: 'images/peppa/11.png', name: '페파 공주', msg: "마지막 미션! 열려있는 모든 창의 [✕]를 눌러 종료해줘!", type: 'close_all' },
+            { img: 'images/peppa/11.png', name: '페파 공주', msg: "열려있는 모든 창의 [✕]를 눌러 종료해줘!", type: 'close_all' },
+            
+            // 04 작업 표시줄 더 알아보기 (추가 미션)
+            { img: 'images/peppa/12.png', name: '페파', msg: "기능이 더 늘어났어! 스피커 아이콘을 눌러 소리를 조절해볼까?", type: 'volume_click' },
+            { img: 'images/peppa/9.png', name: '조지', msg: "와이파이 아이콘을 눌러서 인터넷이 잘 연결되었는지 확인해줘!", type: 'network_click' },
+            { img: 'images/peppa/5.png', name: '레베카', msg: "시계와 날짜를 눌러서 오늘 일정과 알림을 확인해보자!", type: 'calendar_click' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "마지막으로 시작 버튼을 누르고 [그림판]을 한 번 눌러볼래?", type: 'start_app_click' },
+
             { img: 'images/peppa/12.png', name: '페파', msg: "정말 대단해! 넌 이제 최고의 윈도우 마스터야! (클릭!)", type: 'chat' },
         ];
 
@@ -722,7 +729,7 @@
         function updateMission() {
             const m = missions[currentStep];
             if (!m) return;
-            document.getElementById('character-emoji').innerHTML = `<img src="${m.img}" style="height: 110px; object-fit: contain;" onerror="this.outerHTML='🐷'">`;
+            document.getElementById('character-emoji').innerHTML = `<img src="${m.img}" style="height: 180px; object-fit: contain;" onerror="this.outerHTML='🐷'">`;
             document.getElementById('peppa-text').innerText = `${m.name}: ${m.msg}`;
 
             const tz = document.getElementById('target-zone');
@@ -1070,6 +1077,21 @@
                 const el = document.getElementById(id);
                 if (el.classList.contains('show')) completeMission();
             }
+            if (id === 'volume-popup' && missions[currentStep] && missions[currentStep].type === 'volume_click') {
+                if (document.getElementById(id).classList.contains('show')) completeMission();
+            }
+            if (id === 'network-popup' && missions[currentStep] && missions[currentStep].type === 'network_click') {
+                if (document.getElementById(id).classList.contains('show')) completeMission();
+            }
+            if (id === 'calendar-popup' && missions[currentStep] && missions[currentStep].type === 'calendar_click') {
+                if (document.getElementById(id).classList.contains('show')) completeMission();
+            }
+        }
+
+        function startAppSim(name) {
+            alert(name + '이(가) 실행됩니다 (시뮬레이션)');
+            if (missions[currentStep] && missions[currentStep].type === 'start_app_click') completeMission();
+            togglePopup('start-menu');
         }
 
         // 바탕화면 클릭 시 팝업 닫기
