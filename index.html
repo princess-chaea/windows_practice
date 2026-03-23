@@ -262,6 +262,57 @@
         .window-body .desktop-icon:hover {
             background: rgba(0, 0, 0, 0.05) !important;
         }
+
+        /* 추가Taskbar Popups */
+        .taskbar-popup {
+            position: fixed;
+            bottom: 55px; /* 약간 띄움 */
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 4000;
+            padding: 20px;
+            transform: translateY(20px);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+        .taskbar-popup.show {
+            display: block;
+            transform: translateY(0);
+            opacity: 1;
+        }
+        #start-menu { width: 320px; left: 10px; }
+        #calendar-popup { width: 280px; right: 10px; }
+        #volume-popup { width: 220px; right: 90px; }
+        #network-popup { width: 220px; right: 140px; }
+
+        .start-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .start-item:hover { background: rgba(255, 182, 193, 0.2); color: #ec4899; }
+        
+        .taskbar-icon-btn {
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            border-radius: 6px;
+        }
+        .taskbar-icon-btn:hover { background: rgba(0,0,0,0.05); }
+        .taskbar-icon-btn.active { background: rgba(0,0,0,0.1); border-bottom: 2px solid #0078d4; }
     </style>
 </head>
 
@@ -390,16 +441,88 @@
     </div>
 
     <!-- [4] 작업 표시줄 -->
-    <nav class="taskbar px-2">
-        <div class="w-10 h-10 flex items-center justify-center text-blue-600 text-xl cursor-pointer hover:bg-gray-200 rounded"
-            onclick="handleStartClick()"><i class="fab fa-windows"></i></div>
+    <nav class="taskbar px-2 gap-1">
+        <div id="btn-start" class="w-10 taskbar-icon-btn text-blue-600 text-xl"
+            onclick="togglePopup('start-menu')"><i class="fab fa-windows"></i></div>
         <div class="flex-1 flex gap-2 px-2" id="taskbar-apps"></div>
-        <div class="px-3 text-[11px] text-gray-600 font-bold text-center border-l cursor-pointer"
-            onclick="handleClock()">
-            <div id="clock-time">12:00</div>
-            <div id="clock-date">2024-05-20</div>
+        <div class="flex items-center gap-1 px-1 h-full">
+            <div id="btn-network" class="w-10 taskbar-icon-btn" onclick="togglePopup('network-popup')">
+                <i class="fas fa-wifi text-gray-600"></i>
+            </div>
+            <div id="btn-volume" class="w-10 taskbar-icon-btn" onclick="togglePopup('volume-popup')">
+                <i class="fas fa-volume-up text-gray-600"></i>
+            </div>
+        </div>
+        <div id="btn-calendar" class="px-3 h-full taskbar-icon-btn text-[11px] text-gray-600 font-bold text-center border-l"
+            onclick="togglePopup('calendar-popup')">
+            <div>
+                <div id="clock-time">12:00</div>
+                <div id="clock-date">2024-05-20</div>
+            </div>
         </div>
     </nav>
+
+    <!-- [4.5] Taskbar Popups -->
+    <div id="start-menu" class="taskbar-popup flex flex-col gap-4">
+        <div class="flex items-center gap-4 border-b pb-4">
+            <img src="images/peppa/12.png" class="w-12 h-12 rounded-full border-2 border-pink-300">
+            <div>
+                <div class="font-bold text-gray-800">페파 피그</div>
+                <div class="text-xs text-gray-500 font-medium">사용자 계정</div>
+            </div>
+        </div>
+        <div class="flex flex-col gap-1">
+            <div class="start-item" onclick="alert('그림판이 실행됩니다 (시뮬레이션)')"><i class="fas fa-paint-brush text-orange-400"></i> 그림판</div>
+            <div class="start-item" onclick="alert('메모장이 실행됩니다 (시뮬레이션)')"><i class="fas fa-file-alt text-blue-400"></i> 메모장</div>
+            <div class="start-item" onclick="alert('게임센터가 실행됩니다 (시뮬레이션)')"><i class="fas fa-gamepad text-green-400"></i> 게임</div>
+        </div>
+        <div class="border-t pt-4 mt-2 flex justify-between items-center">
+            <div class="start-item text-gray-600 !p-2" onclick="location.reload()"><i class="fas fa-power-off"></i> 다시 시작</div>
+            <div class="start-item text-gray-600 !p-2" onclick="window.close()"><i class="fas fa-sign-out-alt"></i> 종료</div>
+        </div>
+    </div>
+
+    <div id="calendar-popup" class="taskbar-popup">
+        <div class="font-bold text-gray-800 border-b pb-2 mb-2 flex justify-between items-center">
+            <span>2024년 5월</span>
+            <div class="flex gap-2 text-xs"><i class="fas fa-chevron-up"></i> <i class="fas fa-chevron-down"></i></div>
+        </div>
+        <div class="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 mb-2">
+            <span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+        </div>
+        <div class="grid grid-cols-7 text-center text-xs gap-y-2">
+            <span class="text-gray-300">28</span><span class="text-gray-300">29</span><span class="text-gray-300">30</span>
+            <span>1</span><span>2</span><span>3</span><span>4</span>
+            <span class="text-blue-500 font-bold bg-blue-50 rounded">20</span>
+        </div>
+        <div class="mt-4 pt-3 border-t">
+            <div class="text-[10px] font-bold text-gray-400 mb-2 uppercase tracking-wider">최근 알림</div>
+            <div class="flex gap-3 items-start bg-pink-50/50 p-2 rounded-lg border border-pink-100">
+                <i class="fas fa-bell text-pink-400 text-xs mt-1"></i>
+                <div class="text-[10px]">
+                    <div class="font-bold text-gray-700">페파 피그</div>
+                    <div class="text-gray-500">오늘 미션을 모두 완료해봐! ✨</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="volume-popup" class="taskbar-popup flex items-center gap-3">
+        <i class="fas fa-volume-up text-gray-600"></i>
+        <input type="range" class="flex-1 accent-pink-500" value="70">
+        <span class="text-xs font-bold text-gray-600">70</span>
+    </div>
+
+    <div id="network-popup" class="taskbar-popup">
+        <div class="flex items-center gap-3 mb-3">
+            <i class="fas fa-wifi text-blue-500 text-xl"></i>
+            <div>
+                <div class="text-sm font-bold">Peppa_WiFi</div>
+                <div class="text-[10px] text-green-500 font-medium font-bold">연결됨</div>
+            </div>
+        </div>
+        <div class="text-[10px] text-gray-500 bg-gray-50 p-2 rounded">보안 수준: 높음<br>신호 세기: 매우 좋음</div>
+    </div>
 
     <!-- [5] 결과 화면 -->
     <div id="result-screen"
@@ -568,6 +691,7 @@
                     e.stopPropagation();
                 };
                 el.ondblclick = () => { if (['pc', 'folder', 'trash', 'file'].includes(icon.id)) openWin(icon.title); };
+                setupIconDrag(el);
                 desk.appendChild(el);
             });
         }
@@ -913,18 +1037,61 @@
             }
         };
 
-        // --- TEST BYPASS ---
-        window.onload = () => {
-            setTimeout(() => {
-                quizDone = new Set([1, 2, 3]);
-                typingDone = new Set([1, 2, 3]);
-                startApp();
-                currentStep = 12; // Focus mission
-                openWin('내 PC');
-                minimizeWin(windows[0].id);
-                updateMission();
-            }, 500);
-        };
+        function togglePopup(id) {
+            const popups = ['start-menu', 'calendar-popup', 'volume-popup', 'network-popup'];
+            const buttons = {
+                'start-menu': 'btn-start',
+                'calendar-popup': 'btn-calendar',
+                'volume-popup': 'btn-volume',
+                'network-popup': 'btn-network'
+            };
+
+            popups.forEach(p => {
+                const el = document.getElementById(p);
+                const btn = document.getElementById(buttons[p]);
+                if (p === id) {
+                    if (el.classList.contains('show')) {
+                        el.classList.remove('show');
+                        setTimeout(() => el.style.display = 'none', 300);
+                        btn.classList.remove('active');
+                    } else {
+                        el.style.display = 'block';
+                        setTimeout(() => el.classList.add('show'), 10);
+                        btn.classList.add('active');
+                    }
+                } else {
+                    el.classList.remove('show');
+                    setTimeout(() => el.style.display = 'none', 300);
+                    if (btn) btn.classList.remove('active');
+                }
+            });
+
+            if (id === 'start-menu' && missions[currentStep] && missions[currentStep].type === 'start_bar_click') {
+                const el = document.getElementById(id);
+                if (el.classList.contains('show')) completeMission();
+            }
+        }
+
+        // 바탕화면 클릭 시 팝업 닫기
+        document.getElementById('desktop').addEventListener('click', (e) => {
+            if (e.target.id === 'desktop') {
+                const popups = ['start-menu', 'calendar-popup', 'volume-popup', 'network-popup'];
+                popups.forEach(p => {
+                    const el = document.getElementById(p);
+                    if (el.classList.contains('show')) {
+                        el.classList.remove('show');
+                        setTimeout(() => el.style.display = 'none', 300);
+                        // 버튼 active 클래스도 제거해야 함
+                        const btnId = p === 'start-menu' ? 'btn-start' : (p === 'calendar-popup' ? 'btn-calendar' : (p === 'volume-popup' ? 'btn-volume' : 'btn-network'));
+                        document.getElementById(btnId).classList.remove('active');
+                    }
+                });
+            }
+        });
+
+        // 기존 함수들 유지 (하위 호환성)
+        function handleStartClick() { togglePopup('start-menu'); }
+        function handleClock() { togglePopup('calendar-popup'); }
     </script>
 </body>
 
