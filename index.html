@@ -163,7 +163,7 @@
             background: rgba(236, 72, 153, 0.2);
             pointer-events: none;
             display: none;
-            z-index: 10000;
+            z-index: 100;
             border-radius: 20px;
             animation: pulse-border 1.5s infinite;
         }
@@ -616,6 +616,14 @@
         성공이야! ✨</div>
 
     <script>
+        // --- 시스템 팝업을 멀티모달팝업으로 변경 ---
+        window.alert = function(msg) {
+            document.getElementById('app-modal-icon').innerText = '🔔';
+            document.getElementById('app-modal-title').innerText = '알림';
+            document.getElementById('app-modal-msg').innerHTML = msg.replace(/\n/g, '<br>');
+            document.getElementById('app-modal').style.display = 'flex';
+        };
+
         // --- 프리로드 (Preload) ---
         const preload = () => {
             const files = ['all.jpg', ...Array.from({ length: 12 }, (_, i) => `${i + 1}.png`)];
@@ -670,14 +678,14 @@
             { img: 'images/peppa/6.png', name: '에밀리', msg: "이제 '새 폴더'를 열고, [보기 변경] 버튼을 눌러 목록으로 봐보자!", type: 'view_change' },
             { img: 'images/peppa/7.png', name: '페드로', msg: "폴더 안의 파일을 우클릭해서 [복사하기]를 눌러봐!", type: 'copy_start' },
             { img: 'images/peppa/8.png', name: '리차드', msg: "빈 공간에 우클릭해서 [붙여넣기]를 하면 파일이 하나 더 생겨!", type: 'copy_paste' },
-            { img: 'images/peppa/9.png', name: '조지', msg: "파일을 [휴지통] 위(분홍 점선 박스)로 드래그해서 버려볼까?", type: 'delete' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "방금 만든 '파일.txt-복사본'을 마우스로 꾹 잡고, 화면 왼쪽 [휴지통] 위(분홍색 점선 박스)로 정확하게 드래그해서 버려줘!", type: 'delete' },
             { img: 'images/peppa/10.png', name: '페파 요정', msg: "바탕화면 우클릭 후 [정렬]을 눌러 아이콘들을 줄 맞춰보자!", type: 'refresh' },
             { img: 'images/peppa/11.png', name: '페파 공주', msg: "열려있는 모든 창의 [✕]를 눌러 종료해줘!", type: 'close_all' },
             
             // 04 작업 표시줄 더 알아보기 (추가 미션)
             { img: 'images/peppa/12.png', name: '페파', msg: "기능이 더 늘어났어! 스피커 아이콘을 눌러 소리를 조절해볼까?", type: 'volume_click' },
-            { img: 'images/peppa/9.png', name: '조지', msg: "와이파이 아이콘을 눌러서 인터넷이 잘 연결되었는지 확인해줘!", type: 'network_click' },
-            { img: 'images/peppa/5.png', name: '레베카', msg: "시계와 날짜를 눌러서 오늘 일정과 알림을 확인해보자!", type: 'calendar_click' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "와이파이 아이콘을 눌러서 인터넷이 잘 연결되었는지 확인해줘!", type: 'network_click' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "시계와 날짜를 눌러서 오늘 일정과 알림을 확인해보자!", type: 'calendar_click' },
             { img: 'images/peppa/12.png', name: '페파', msg: "마지막으로 시작 버튼을 누르고 [그림판]을 한 번 눌러볼래?", type: 'start_app_click' },
             { img: 'images/peppa/12.png', name: '페파', msg: "이제 완벽해! 마지막으로 [시작 -> 시스템 종료]를 눌러 윈도우 마스터가 되자!", type: 'shutdown' },
 
@@ -751,7 +759,10 @@
                     el.style.zIndex = ++zIndexBase;
                     e.stopPropagation();
                 };
-                el.ondblclick = () => { if (['pc', 'folder', 'trash', 'file', 'sc'].includes(icon.id)) openWin(icon.title, icon.uid); };
+                el.ondblclick = () => {
+                    if (['pc', 'folder', 'trash', 'file', 'sc'].includes(icon.id)) openWin(icon.title, icon.uid);
+                    else if (icon.id === 'app') startAppSim(icon.title);
+                };
                 setupIconDrag(el);
                 desk.appendChild(el);
             });
@@ -800,13 +811,21 @@
                 const folderIcon = document.querySelector('.desktop-icon[data-type="folder"]');
                 if (folderIcon) {
                     const rect = folderIcon.getBoundingClientRect();
-                    tz.style.display = 'block'; tz.style.left = (rect.left - 10) + 'px'; tz.style.top = (rect.top - 10) + 'px'; tz.style.width = '100px'; tz.style.height = '100px';
+                    tz.style.display = 'block';
+                    const size = Math.max(rect.width, rect.height) + 24;
+                    tz.style.width = size + 'px'; tz.style.height = size + 'px';
+                    tz.style.left = (rect.left + rect.width / 2 - size / 2) + 'px';
+                    tz.style.top = (rect.top + rect.height / 2 - size / 2) + 'px';
                 }
             } else if (m.type === 'delete') {
                 const trashIcon = document.querySelector('.desktop-icon[data-type="trash"]');
                 if (trashIcon) {
                     const rect = trashIcon.getBoundingClientRect();
-                    tz.style.display = 'block'; tz.style.left = (rect.left - 10) + 'px'; tz.style.top = (rect.top - 10) + 'px'; tz.style.width = '100px'; tz.style.height = '100px';
+                    tz.style.display = 'block';
+                    const size = Math.max(rect.width, rect.height) + 24;
+                    tz.style.width = size + 'px'; tz.style.height = size + 'px';
+                    tz.style.left = (rect.left + rect.width / 2 - size / 2) + 'px';
+                    tz.style.top = (rect.top + rect.height / 2 - size / 2) + 'px';
                 }
             } else if (m.type === 'chat') {
                 document.getElementById('peppa-guide').onclick = completeMission;
@@ -833,6 +852,12 @@
 
         // --- 창 로직 ---
         function openWin(title, uid) {
+            // 앱 타입이면 시뮬레이션 모달 실행
+            const icon = icons.find(i => i.uid === uid);
+            if (icon && icon.id === 'app') {
+                startAppSim(title);
+                return;
+            }
             const id = 'win-' + Math.random().toString(36).substr(2, 5);
             const win = document.createElement('div');
             win.className = 'window flex flex-col';
@@ -1151,7 +1176,7 @@
         window.onkeydown = (e) => {
             if (e.ctrlKey && e.key === 'c' && missions[currentStep].type === 'copy_paste') {
                 copiedItemData = `<div class="desktop-icon"><i class="fas fa-file-alt text-gray-400 text-3xl"></i><span class="text-[10px]">파일-복사본</span></div>`;
-                alert('파일을 복사했습니다! 이제 폴더 안에서 [우클릭-붙여넣기]를 해주세요.');
+                alert('파일을 복사했습니다!\n이제 폴더 안에서 [우클릭-붙여넣기]를 해주세요.');
             }
         };
 
@@ -1232,7 +1257,7 @@
                 const folderIcon = document.querySelector('.desktop-icon[data-type="folder"]');
                 if (folderIcon) {
                     const rect = folderIcon.getBoundingClientRect();
-                    if (Math.abs(e.clientX - (rect.left + 40)) < 80 && Math.abs(e.clientY - (rect.top + 40)) < 80) {
+                    if (Math.abs(e.clientX - (rect.left + rect.width / 2)) < 80 && Math.abs(e.clientY - (rect.top + rect.height / 2)) < 80) {
                         const folderUid = folderIcon.id.replace('icon-', '');
                         const folderData = icons.find(i => i.uid === folderUid);
                         if (folderData && iconData) {
@@ -1253,7 +1278,7 @@
                 const trashIcon = document.querySelector('.desktop-icon[data-type="trash"]');
                 if (trashIcon) {
                     const trash = trashIcon.getBoundingClientRect();
-                    if (Math.abs(e.clientX - (trash.left + 40)) < 80 && Math.abs(e.clientY - (trash.top + 40)) < 80) {
+                    if (Math.abs(e.clientX - (trash.left + trash.width / 2)) < 80 && Math.abs(e.clientY - (trash.top + trash.height / 2)) < 80) {
                         activeObj.style.display = 'none'; activeObj.remove(); if (iconData) iconData.hiddenInDesktop = true; completeMission();
                     }
                 }
