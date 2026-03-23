@@ -774,6 +774,10 @@
                 tz.style.display = 'block'; tz.style.left = '5px'; tz.style.top = 'calc(100vh - 42px)'; tz.style.width = '42px'; tz.style.height = '42px';
             } else if (m.type === 'icon_move') {
                 tz.style.display = 'block'; tz.style.left = '45%'; tz.style.top = '40%'; tz.style.width = '120px'; tz.style.height = '120px';
+            } else if (m.type === 'window_move') {
+                tz.style.display = 'block'; tz.style.left = '60%'; tz.style.top = '50%'; tz.style.width = '35%'; tz.style.height = '40%';
+            } else if (m.type === 'snap') {
+                tz.style.display = 'block'; tz.style.left = 'auto'; tz.style.right = '0'; tz.style.top = '0'; tz.style.width = '30px'; tz.style.height = 'calc(100vh - 45px)';
             } else if (m.type === 'chat') {
                 document.getElementById('peppa-guide').onclick = completeMission;
             } else {
@@ -969,7 +973,7 @@
             }
             if (m.type === 'window_move' && activeObj.classList.contains('window')) {
                 const rect = activeObj.getBoundingClientRect();
-                if (rect.left > window.innerWidth * 0.35 && rect.top > window.innerHeight * 0.35) completeMission();
+                if (rect.right > window.innerWidth * 0.6 && rect.bottom > window.innerHeight * 0.6) completeMission();
             }
             if (m.type === 'snap' && e.clientX > window.innerWidth - 30) {
                 activeObj.style.left = '50%';
