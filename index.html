@@ -241,21 +241,30 @@
             margin-bottom: 0 !important;
         }
 
-        /* 작업표시줄 활성 표시 */
-        .taskbar-item {
+        /* 작업표시줄 표시 (열려 있는 창) */
+        .taskbar-window {
             position: relative;
             transition: 0.2s;
         }
-        .taskbar-item.active::after {
+        .taskbar-window::after {
             content: '';
             position: absolute;
-            bottom: 2px;
+            bottom: 3px;
             left: 50%;
             transform: translateX(-50%);
-            width: 6px;
-            height: 2px;
-            background: var(--win-blue);
+            width: 8px;
+            height: 3px;
+            background: rgba(0, 120, 212, 0.3); /* 기본: 열려 있음 (비활성/최소화) */
             border-radius: 2px;
+            transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .taskbar-window.active::after {
+            width: 24px;
+            background: var(--win-blue); /* 현재 활성창: 긴 막대 */
+        }
+        .taskbar-window.minimized::after {
+            width: 4px;
+            background: #999; /* 최소화된 창: 작은 점/짧은 막대 */
         }
 
         /* 폴더 내부 아이콘 스타일 수정 */
@@ -538,8 +547,8 @@
 
     <div id="volume-popup" class="taskbar-popup flex items-center gap-3">
         <i class="fas fa-volume-up text-gray-600"></i>
-        <input type="range" class="flex-1 accent-pink-500" value="70">
-        <span class="text-xs font-bold text-gray-600">70</span>
+        <input type="range" class="flex-1 accent-pink-500" value="70" oninput="handleVolume(this)">
+        <span id="vol-val" class="text-xs font-bold text-gray-600 w-6">70</span>
     </div>
 
     <div id="network-popup" class="taskbar-popup">
@@ -683,7 +692,7 @@
             { img: 'images/peppa/11.png', name: '페파 공주', msg: "열려있는 모든 창의 [✕]를 눌러 종료해줘!", type: 'close_all' },
             
             // 04 작업 표시줄 더 알아보기 (추가 미션)
-            { img: 'images/peppa/12.png', name: '페파', msg: "기능이 더 늘어났어! 스피커 아이콘을 눌러 소리를 조절해볼까?", type: 'volume_click' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "기능이 더 늘어났어! 스피커 아이콘을 눌러 소리를 조절해볼까?", type: 'volume_adjust' },
             { img: 'images/peppa/12.png', name: '페파', msg: "와이파이 아이콘을 눌러서 인터넷이 잘 연결되었는지 확인해줘!", type: 'network_click' },
             { img: 'images/peppa/12.png', name: '페파', msg: "시계와 날짜를 눌러서 오늘 일정과 알림을 확인해보자!", type: 'calendar_click' },
             { img: 'images/peppa/12.png', name: '페파', msg: "마지막으로 시작 버튼을 누르고 [그림판]을 한 번 눌러볼래?", type: 'start_app_click' },
@@ -928,17 +937,21 @@
                 const title = win.dataset.title;
                 const icon = (title === '내 PC') ? 'fa-desktop text-blue-500' : 'fa-folder text-yellow-400';
                 const isHidden = win.style.display === 'none';
+                const isFront = win.style.zIndex == zIndexBase;
                 
                 const item = document.createElement('div');
-                item.className = `w-12 h-full flex items-center justify-center cursor-pointer hover:bg-white/20 taskbar-item ${!isHidden ? 'active' : ''}`;
+                item.className = `w-12 h-full flex items-center justify-center cursor-pointer hover:bg-white/20 taskbar-window ${isFront && !isHidden ? 'active' : ''} ${isHidden ? 'minimized' : ''}`;
                 item.innerHTML = `<i class="fas ${icon} text-xl"></i>`;
                 item.onclick = () => {
                     if (isHidden) {
                         win.style.display = 'flex';
                         win.style.zIndex = ++zIndexBase;
                         if (missions[currentStep].type === 'focus') completeMission();
-                    } else {
+                    } else if (isFront) {
                         win.style.display = 'none';
+                    } else {
+                        win.style.zIndex = ++zIndexBase;
+                        if (missions[currentStep].type === 'focus') completeMission();
                     }
                     updateTaskbar();
                 };
@@ -1203,7 +1216,6 @@
                         btn.classList.add('active');
                         // 미션 체크
                         if (id === 'start-menu' && missions[currentStep] && missions[currentStep].type === 'start_bar_click') completeMission();
-                        if (id === 'volume-popup' && missions[currentStep] && missions[currentStep].type === 'volume_click') completeMission();
                         if (id === 'network-popup' && missions[currentStep] && missions[currentStep].type === 'network_click') completeMission();
                         if (id === 'calendar-popup' && missions[currentStep] && missions[currentStep].type === 'calendar_click') completeMission();
                     }
@@ -1325,7 +1337,13 @@
         }
 
         // 바탕화면 클릭 시 팝업 닫기
-        document.getElementById('desktop').addEventListener('click', (e) => {
+        document.addEventListener('click', (e) => {
+            // chat 미션이면 아무곳이나 클릭해도 다음으로
+            if (missions[currentStep] && missions[currentStep].type === 'chat') {
+                completeMission();
+                return;
+            }
+
             if (e.target.id === 'desktop') {
                 const popups = ['start-menu', 'calendar-popup', 'volume-popup', 'network-popup'];
                 popups.forEach(p => {
@@ -1344,6 +1362,13 @@
         // 기존 함수들 유지 (하위 호환성)
         function handleStartClick() { togglePopup('start-menu'); }
         function handleClock() { togglePopup('calendar-popup'); }
+
+        function handleVolume(el) {
+            document.getElementById('vol-val').innerText = el.value;
+            if (missions[currentStep] && (missions[currentStep].type === 'volume_adjust' || missions[currentStep].type === 'volume_click')) {
+                completeMission();
+            }
+        }
     </script>
 </body>
 
