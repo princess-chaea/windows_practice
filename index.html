@@ -733,7 +733,7 @@
                     el.style.zIndex = ++zIndexBase;
                     e.stopPropagation();
                 };
-                el.ondblclick = () => { if (['pc', 'folder', 'trash', 'file'].includes(icon.id)) openWin(icon.title); };
+                el.ondblclick = () => { if (['pc', 'folder', 'trash', 'file', 'sc'].includes(icon.id)) openWin(icon.title, icon.uid); };
                 setupIconDrag(el);
                 desk.appendChild(el);
             });
@@ -798,12 +798,13 @@
         }
 
         // --- 창 로직 ---
-        function openWin(title) {
+        function openWin(title, uid) {
             const id = 'win-' + Math.random().toString(36).substr(2, 5);
             const win = document.createElement('div');
             win.className = 'window flex flex-col';
             win.id = id; win.style.left = (100 + windows.length * 30) + 'px'; win.style.top = (100 + windows.length * 30) + 'px'; win.style.zIndex = ++zIndexBase;
             win.dataset.title = title;
+            win.dataset.uid = uid;
 
             win.onmousedown = () => {
                 win.style.zIndex = ++zIndexBase;
@@ -825,7 +826,7 @@
                     <span>${title} 내부 탐색 중</span>
                 </div>
                 <div class="window-body flex-1 p-4 bg-gray-50 overflow-auto relative grid grid-cols-4 gap-4 content-start">
-                    ${title === '새 폴더' || title === '내 PC' ? '<div id="folder-content" class="contents"></div>' : '<i class="fas fa-folder-open text-5xl text-blue-100/30 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>'}
+                    <div id="folder-content-${id}" class="contents col-span-4 grid grid-cols-4 gap-4"></div>
                 </div>
                 <div class="resizer" onmousedown="startResize(event, '${id}')"></div>
             `;
@@ -833,6 +834,20 @@
             windows.push(win);
             setupWinDrag(win);
             updateTaskbar();
+
+            // 폴더 내용 렌더링
+            const folderData = icons.find(i => i.uid === uid);
+            if (folderData && folderData.contents) {
+                const contentDiv = document.getElementById(`folder-content-${id}`);
+                folderData.contents.forEach(item => {
+                    const el = document.createElement('div');
+                    el.className = 'desktop-icon';
+                    el.style.position = 'relative'; el.style.left = 'auto'; el.style.top = 'auto';
+                    el.innerHTML = `<i class="fas ${item.icon} ${item.color} text-3xl"></i><span class="text-[10px] text-gray-800">${item.title}</span>`;
+                    setupIconDrag(el);
+                    contentDiv.appendChild(el);
+                });
+            }
 
             if (missions[currentStep].type === 'run' && title === missions[currentStep].target) completeMission();
         }
@@ -1061,17 +1076,36 @@
         }
         function pasteItem() { 
             if (copiedItemData) { 
-                const folderBody = document.getElementById('folder-content'); 
-                if (folderBody) { 
-                    const pastedFile = document.createElement('div');
-                    pastedFile.className = 'desktop-icon';
-                    pastedFile.id = 'pasted-file-' + Date.now();
-                    pastedFile.innerHTML = copiedItemData.includes('복사본') ? copiedItemData : copiedItemData.replace('</span>', '-복사본</span>');
-                    setupIconDrag(pastedFile);
-                    folderBody.appendChild(pastedFile);
-                    if (missions[currentStep].type === 'copy_paste') completeMission(); 
-                    copiedItemData = null; 
-                } 
+                const win = windows.find(w => w.style.zIndex == zIndexBase);
+                if (win) {
+                    const id = win.id;
+                    const folderUid = win.dataset.uid;
+                    const folderData = icons.find(i => i.uid === folderUid);
+                    const folderBody = document.getElementById(`folder-content-${id}`);
+
+                    if (folderBody) { 
+                        const pastedFile = document.createElement('div');
+                        pastedFile.className = 'desktop-icon';
+                        pastedFile.id = 'pasted-file-' + Date.now();
+                        pastedFile.innerHTML = copiedItemData.includes('복사본') ? copiedItemData : copiedItemData.replace('</span>', '-복사본</span>');
+                        setupIconDrag(pastedFile);
+                        folderBody.appendChild(pastedFile);
+
+                        // 데이터 구조에도 추가
+                        if (folderData) {
+                            if (!folderData.contents) folderData.contents = [];
+                            folderData.contents.push({ 
+                                uid: 'pasted-' + Date.now(), 
+                                title: pastedFile.innerText, 
+                                icon: 'fa-file-alt', 
+                                color: 'text-gray-400' 
+                            });
+                        }
+
+                        if (missions[currentStep].type === 'copy_paste') completeMission(); 
+                        copiedItemData = null; 
+                    } 
+                }
             } 
         }
 
@@ -1109,7 +1143,7 @@
                         el.style.display = 'block';
                         setTimeout(() => el.classList.add('show'), 10);
                         btn.classList.add('active');
-                        // 미션 체크용 플래그
+                        // 미션 체크
                         if (id === 'start-menu' && missions[currentStep] && missions[currentStep].type === 'start_bar_click') completeMission();
                         if (id === 'volume-popup' && missions[currentStep] && missions[currentStep].type === 'volume_click') completeMission();
                         if (id === 'network-popup' && missions[currentStep] && missions[currentStep].type === 'network_click') completeMission();
@@ -1122,6 +1156,64 @@
                 }
             });
         }
+
+        document.onmouseup = (e) => {
+            if (!isDrag || !activeObj) return;
+
+            const m = missions[currentStep];
+            const iconUid = activeObj.id.replace('icon-', '');
+            const iconData = icons.find(i => i.uid === iconUid);
+
+            // 1. 아이콘 위치 업데이트
+            if (iconData) {
+                iconData.x = activeObj.offsetLeft;
+                iconData.y = activeObj.offsetTop;
+                if (iconData.y > window.innerHeight - 80) {
+                    iconData.y = window.innerHeight - 110;
+                    activeObj.style.top = iconData.y + 'px';
+                }
+            }
+
+            // 2. 미션 체크
+            if (m.type === 'icon_move' && activeObj.dataset.type === 'pc') {
+                const rect = activeObj.getBoundingClientRect();
+                if (rect.left > window.innerWidth * 0.4 && rect.top > window.innerHeight * 0.35) completeMission();
+            }
+            if (m.type === 'pin' && e.clientY > window.innerHeight - 50) {
+                const icon = icons.find(i => i.uid === iconUid);
+                if (icon && !pinnedApps.find(pa => pa.uid === icon.uid)) {
+                    pinnedApps.push(icon); updateTaskbar(); completeMission();
+                }
+                if (iconData) { iconData.y = window.innerHeight - 110; activeObj.style.top = iconData.y + 'px'; }
+            }
+            if (m.type === 'move_to_folder' && activeObj.dataset.type === 'file') {
+                const folderIcon = document.querySelector('.desktop-icon[data-type="folder"]');
+                if (folderIcon) {
+                    const rect = folderIcon.getBoundingClientRect();
+                    if (Math.abs(e.clientX - (rect.left + 40)) < 60 && Math.abs(e.clientY - (rect.top + 40)) < 60) {
+                        const folderUid = folderIcon.id.replace('icon-', '');
+                        const folderData = icons.find(i => i.uid === folderUid);
+                        if (folderData && iconData) {
+                            activeObj.style.display = 'none';
+                            iconData.hiddenInDesktop = true;
+                            if (!folderData.contents) folderData.contents = [];
+                            folderData.contents.push({ uid: iconData.uid, title: iconData.title, icon: iconData.icon, color: iconData.color });
+                            completeMission();
+                        }
+                    }
+                }
+            }
+            if (m.type === 'delete' && (activeObj.dataset.type === 'file' || activeObj.dataset.type === 'folder' || activeObj.id.includes('pasted'))) {
+                const trashIcon = document.querySelector('.desktop-icon[data-type="trash"]');
+                if (trashIcon) {
+                    const trash = trashIcon.getBoundingClientRect();
+                    if (Math.abs(e.clientX - (trash.left + 40)) < 60 && Math.abs(e.clientY - (trash.top + 40)) < 60) {
+                        activeObj.style.display = 'none'; activeObj.remove(); if (iconData) iconData.hiddenInDesktop = true; completeMission();
+                    }
+                }
+            }
+            isDrag = false; activeObj = null;
+        };
 
         function startAppSim(name) {
             alert(name + '이(가) 실행됩니다 (시뮬레이션)');
