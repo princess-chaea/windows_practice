@@ -659,6 +659,7 @@
         let zIndexBase = 1000;
         let pinnedApps = []; // 핀으로 고정한 앱들 저장
         let isResizing = false;
+        let isMissionCompleting = false; // 미션 완료 중복 발생 방지
 
         const missions = [
             // 01 화면 설정하기 (캐릭터 12, 1, 2, 3, 4, 5, 6)
@@ -849,11 +850,15 @@
         }
 
         function completeMission() {
+            if (isMissionCompleting) return;
+            isMissionCompleting = true;
+
             const pop = document.getElementById('success-pop');
             pop.classList.remove('hidden');
             setTimeout(() => {
                 pop.classList.add('hidden');
                 currentStep++;
+                isMissionCompleting = false; 
                 if (currentStep < missions.length) updateMission();
                 else document.getElementById('result-screen').classList.remove('hidden');
             }, 1000);
@@ -1338,6 +1343,9 @@
 
         // 바탕화면 클릭 시 팝업 닫기
         document.addEventListener('click', (e) => {
+            // 미션 완료 연출 중에는 클릭 무시
+            if (isMissionCompleting) return;
+
             // chat 미션이면 아무곳이나 클릭해도 다음으로
             if (missions[currentStep] && missions[currentStep].type === 'chat') {
                 completeMission();
