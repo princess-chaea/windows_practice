@@ -313,6 +313,27 @@
         }
         .taskbar-icon-btn:hover { background: rgba(0,0,0,0.05); }
         .taskbar-icon-btn.active { background: rgba(0,0,0,0.1); border-bottom: 2px solid #0078d4; }
+        #icon-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none; /* 아이콘 자체는 pointer-events: auto로 설정 */
+            z-index: 5;
+        }
+        #icon-layer .desktop-icon {
+            pointer-events: auto;
+        }
+
+        .shutdown-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            color: white;
+        }
     </style>
 </head>
 
@@ -429,6 +450,7 @@
 
     <!-- [2] 메인 바탕화면 -->
     <main id="desktop" class="relative w-full h-screen">
+        <div id="icon-layer"></div>
         <!-- 아이콘은 JS에서 생성됨 -->
     </main>
 
@@ -478,7 +500,7 @@
         </div>
         <div class="border-t pt-4 mt-2 flex justify-between items-center">
             <div class="start-item text-gray-600 !p-2" onclick="location.reload()"><i class="fas fa-power-off"></i> 다시 시작</div>
-            <div class="start-item text-gray-600 !p-2" onclick="window.close()"><i class="fas fa-sign-out-alt"></i> 종료</div>
+            <div class="start-item text-gray-600 !p-2" onclick="handleShutdown()"><i class="fas fa-sign-out-alt"></i> 시스템 종료</div>
         </div>
     </div>
 
@@ -544,6 +566,18 @@
         </div>
     </div>
 
+        </div>
+    </div>
+
+    <!-- 종료 시뮬레이션 모달 -->
+    <div id="shutdown-modal" class="shutdown-modal">
+        <i class="fas fa-spinner fa-spin text-5xl mb-6"></i>
+        <h2 class="text-3xl font-black mb-2">시스템 종료 중...</h2>
+        <p class="text-gray-400">페파 피그 에디션을 종료하고 있습니다.</p>
+        <button onclick="closeShutdownModal()"
+            class="mt-8 px-6 py-2 border border-white/30 rounded-full hover:bg-white/10 transition">중단하기</button>
+    </div>
+
     <!-- 우클릭 메뉴 -->
     <div id="context-menu" class="rounded-lg">
         <div id="menu-view" class="menu-item" onclick="toggleIconSize()">보기(V) > 큰 아이콘</div>
@@ -580,8 +614,8 @@
         let typingDone = new Set();
         let windows = [];
         let icons = [
-            { id: 'pc', title: '내 PC', icon: 'fa-desktop', color: 'text-blue-500', x: 30, y: 30 },
-            { id: 'trash', title: '휴지통', icon: 'fa-trash', color: 'text-gray-400', x: 30, y: 140 },
+            { uid: 'pc-init', id: 'pc', title: '내 PC', icon: 'fa-desktop', color: 'text-blue-500', x: 30, y: 30 },
+            { uid: 'trash-init', id: 'trash', title: '휴지통', icon: 'fa-trash', color: 'text-gray-400', x: 30, y: 140 },
         ];
         let activeObj = null;
         let isDrag = false;
@@ -627,6 +661,7 @@
             { img: 'images/peppa/9.png', name: '조지', msg: "와이파이 아이콘을 눌러서 인터넷이 잘 연결되었는지 확인해줘!", type: 'network_click' },
             { img: 'images/peppa/5.png', name: '레베카', msg: "시계와 날짜를 눌러서 오늘 일정과 알림을 확인해보자!", type: 'calendar_click' },
             { img: 'images/peppa/12.png', name: '페파', msg: "마지막으로 시작 버튼을 누르고 [그림판]을 한 번 눌러볼래?", type: 'start_app_click' },
+            { img: 'images/peppa/12.png', name: '페파', msg: "이제 완벽해! 마지막으로 [시작 -> 시스템 종료]를 눌러 윈도우 마스터가 되자!", type: 'shutdown' },
 
             { img: 'images/peppa/12.png', name: '페파', msg: "정말 대단해! 넌 이제 최고의 윈도우 마스터야! (클릭!)", type: 'chat' },
         ];
@@ -673,13 +708,14 @@
         }
 
         function renderDesktop() {
-            const desk = document.getElementById('desktop');
+            const desk = document.getElementById('icon-layer');
             desk.innerHTML = '';
             icons.forEach(icon => {
                 if (icon.hiddenInDesktop) return;
                 const el = document.createElement('div');
                 el.className = `desktop-icon ${icon.large ? 'large' : ''}`;
-                el.id = 'icon-' + icon.id;
+                el.id = 'icon-' + icon.uid;
+                el.dataset.type = icon.id; // 타입 저장을 위해 dataset 사용
                 el.style.left = icon.x + 'px';
                 el.style.top = icon.y + 'px';
                 el.innerHTML = `
@@ -896,8 +932,8 @@
             if (!isDrag || !activeObj) return;
 
             const m = missions[currentStep];
-            const iconId = activeObj.id.replace('icon-', '');
-            const iconData = icons.find(i => i.id === iconId);
+            const iconUid = activeObj.id.replace('icon-', '');
+            const iconData = icons.find(i => i.uid === iconUid);
 
             // 1. 아이콘 위치 업데이트 및 작업표시줄 뒤로 숨음 방지
             if (iconData) {
@@ -927,9 +963,9 @@
                 completeMission();
             }
             if (m.type === 'pin' && e.clientY > window.innerHeight - 50) {
-                const iconId = activeObj.id.split('-')[1];
-                const icon = icons.find(i => i.id === iconId);
-                if (icon && !pinnedApps.find(pa => pa.id === iconId)) {
+                const type = activeObj.dataset.type;
+                const icon = icons.find(i => i.uid === iconUid);
+                if (icon && !pinnedApps.find(pa => pa.uid === icon.uid)) {
                     pinnedApps.push(icon);
                     updateTaskbar();
                     completeMission();
@@ -940,29 +976,36 @@
                     activeObj.style.top = iconData.y + 'px';
                 }
             }
-            if (m.type === 'move_to_folder' && activeObj.id === 'icon-file') {
-                const folderIcon = document.getElementById('icon-folder').getBoundingClientRect();
-                if (Math.abs(e.clientX - (folderIcon.left + 40)) < 60 && Math.abs(e.clientY - (folderIcon.top + 40)) < 60) {
-                    activeObj.style.display = 'none';
-                    icons.find(i => i.id === 'file').hiddenInDesktop = true;
-                    const content = document.getElementById('folder-content');
-                    if (content) {
-                        const newFile = document.createElement('div');
-                        newFile.className = 'desktop-icon';
-                        newFile.id = 'file-in-folder';
-                        newFile.innerHTML = `<i class="fas fa-file-alt text-gray-400 text-3xl"></i><span class="text-[10px]">파일.txt</span>`;
-                        setupIconDrag(newFile);
-                        content.appendChild(newFile);
+            if (m.type === 'move_to_folder' && activeObj.dataset.type === 'file') {
+                const folderIcon = document.querySelector('.desktop-icon[data-type="folder"]');
+                if (folderIcon) {
+                    const rect = folderIcon.getBoundingClientRect();
+                    if (Math.abs(e.clientX - (rect.left + 40)) < 60 && Math.abs(e.clientY - (rect.top + 40)) < 60) {
+                        activeObj.style.display = 'none';
+                        if (iconData) iconData.hiddenInDesktop = true;
+                        const content = document.getElementById('folder-content');
+                        if (content) {
+                            const newFile = document.createElement('div');
+                            newFile.className = 'desktop-icon';
+                            newFile.id = 'file-in-folder-' + Date.now();
+                            newFile.innerHTML = `<i class="fas fa-file-alt text-gray-400 text-3xl"></i><span class="text-[10px]">파일.txt</span>`;
+                            setupIconDrag(newFile);
+                            content.appendChild(newFile);
+                        }
+                        completeMission();
                     }
-                    completeMission();
                 }
             }
-            if (m.type === 'delete' && (activeObj.id.includes('file') || activeObj.id.includes('folder') || activeObj.id.includes('pasted'))) {
-                const trash = document.getElementById('icon-trash').getBoundingClientRect();
-                if (Math.abs(e.clientX - (trash.left + 40)) < 60 && Math.abs(e.clientY - (trash.top + 40)) < 60) {
-                    activeObj.style.display = 'none';
-                    activeObj.remove(); // DOM에서 제거
-                    completeMission();
+            if (m.type === 'delete' && (activeObj.dataset.type === 'file' || activeObj.dataset.type === 'folder' || activeObj.id.includes('pasted'))) {
+                const trashIcon = document.querySelector('.desktop-icon[data-type="trash"]');
+                if (trashIcon) {
+                    const trash = trashIcon.getBoundingClientRect();
+                    if (Math.abs(e.clientX - (trash.left + 40)) < 60 && Math.abs(e.clientY - (trash.top + 40)) < 60) {
+                        activeObj.style.display = 'none';
+                        activeObj.remove(); // DOM에서 제거
+                        if (iconData) iconData.hiddenInDesktop = true;
+                        completeMission();
+                    }
                 }
             }
             isDrag = false;
@@ -979,7 +1022,8 @@
             const targetIcon = e.target.closest('.desktop-icon');
             rightClickedIcon = targetIcon;
 
-            document.getElementById('menu-shortcut').classList.toggle('hidden', missions[currentStep].type !== 'shortcut');
+            const isMyPc = targetIcon && targetIcon.dataset.type === 'pc';
+            document.getElementById('menu-shortcut').classList.toggle('hidden', missions[currentStep].type !== 'shortcut' || !isMyPc);
             document.getElementById('menu-copy').classList.toggle('hidden', !targetIcon || missions[currentStep].type !== 'copy_start');
             document.getElementById('menu-paste').classList.toggle('hidden', !copiedItemData || missions[currentStep].type !== 'copy_paste');
             return false;
@@ -1001,9 +1045,9 @@
                 if (missions[currentStep].type === 'refresh') completeMission(); 
             }, 200); 
         }
-        function createNewFolder() { icons.push({ id: 'folder', title: '새 폴더', icon: 'fa-folder', color: 'text-yellow-400', x: 200, y: 200 }); renderDesktop(); if (missions[currentStep].type === 'new_folder') completeMission(); }
-        function createNewFile() { icons.push({ id: 'file', title: '파일.txt', icon: 'fa-file-alt', color: 'text-gray-300', x: 250, y: 150 }); renderDesktop(); if (missions[currentStep].type === 'new_file') completeMission(); }
-        function createShortcut() { icons.push({ id: 'sc', title: '내 PC - 바로 가기', icon: 'fa-desktop', color: 'text-blue-500', x: 150, y: 200, shortcut: true }); renderDesktop(); completeMission(); }
+        function createNewFolder() { icons.push({ uid: 'folder-' + Date.now(), id: 'folder', title: '새 폴더', icon: 'fa-folder', color: 'text-yellow-400', x: 200, y: 200 }); renderDesktop(); if (missions[currentStep].type === 'new_folder') completeMission(); }
+        function createNewFile() { icons.push({ uid: 'file-' + Date.now(), id: 'file', title: '파일.txt', icon: 'fa-file-alt', color: 'text-gray-300', x: 250, y: 150 }); renderDesktop(); if (missions[currentStep].type === 'new_file') completeMission(); }
+        function createShortcut() { icons.push({ uid: 'sc-' + Date.now(), id: 'sc', title: '내 PC - 바로 가기', icon: 'fa-desktop', color: 'text-blue-500', x: 150, y: 200, shortcut: true }); renderDesktop(); completeMission(); }
         function changeTheme() { document.body.style.background = '#e0f2fe'; if (missions[currentStep].type === 'theme') completeMission(); }
         function setScreenSaver() {
             const ss = document.createElement('div'); ss.className = 'fixed inset-0 bg-black z-[9000] flex items-center justify-center text-white text-4xl animate-pulse'; ss.innerText = '화면 보호기 작동 중... 마우스 클릭 시 종료';
@@ -1083,6 +1127,19 @@
             alert(name + '이(가) 실행됩니다 (시뮬레이션)');
             if (missions[currentStep] && missions[currentStep].type === 'start_app_click') completeMission();
             togglePopup('start-menu');
+        }
+
+        function handleShutdown() {
+            if (missions[currentStep] && missions[currentStep].type === 'shutdown') {
+                completeMission();
+                togglePopup('start-menu');
+            } else {
+                document.getElementById('shutdown-modal').style.display = 'flex';
+            }
+        }
+
+        function closeShutdownModal() {
+            document.getElementById('shutdown-modal').style.display = 'none';
         }
 
         // 바탕화면 클릭 시 팝업 닫기
