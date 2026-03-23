@@ -968,9 +968,10 @@
                 if (rect.left > window.innerWidth * 0.4 && rect.top > window.innerHeight * 0.35) completeMission();
             }
             if (m.type === 'window_move' && activeObj.classList.contains('window')) {
-                if (activeObj.offsetLeft > window.innerWidth * 0.4) completeMission();
+                const rect = activeObj.getBoundingClientRect();
+                if (rect.left > window.innerWidth * 0.35 && rect.top > window.innerHeight * 0.35) completeMission();
             }
-            if (m.type === 'snap' && e.clientX > window.innerWidth - 10) {
+            if (m.type === 'snap' && e.clientX > window.innerWidth - 30) {
                 activeObj.style.left = '50%';
                 activeObj.style.top = '0';
                 activeObj.style.width = '50%';
