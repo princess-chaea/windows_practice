@@ -132,7 +132,7 @@
             display: flex;
             align-items: center;
             z-index: 3000;
-            padding-left: 60px; /* 구글 사이트 정보 아이콘(i) 회피용 */
+            padding-left: 60px !important; /* 구글 사이트 정보 아이콘(i) 회피용 */
         }
 
         /* 우클릭 메뉴 */
@@ -479,7 +479,10 @@
     </div>
 
     <!-- [4] 작업 표시줄 -->
-    <nav class="taskbar px-2 gap-1">
+    <nav class="taskbar gap-1">
+        <!-- 구글 사이트 정보 표시 아이콘(i) 공간 확보를 위한 투명 스페이서 -->
+        <div style="width: 60px; flex-shrink: 0;"></div>
+        
         <div id="btn-start" class="w-10 taskbar-icon-btn text-blue-600 text-xl"
             onclick="togglePopup('start-menu')"><i class="fab fa-windows"></i></div>
         <div class="flex-1 flex gap-2 px-2" id="taskbar-apps"></div>
