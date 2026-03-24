@@ -97,7 +97,7 @@
             display: flex;
             flex-direction: column;
             align-items: flex-end;
-            z-index: 2000;
+            z-index: 500;
         }
 
         .bubble {
@@ -126,7 +126,7 @@
             position: fixed;
             bottom: 0;
             width: 100%;
-            height: 45px;
+            height: 65px;
             background: rgba(255, 255, 255, 0.8);
             backdrop-filter: blur(10px);
             display: flex;
@@ -282,7 +282,7 @@
         /* 추가Taskbar Popups */
         .taskbar-popup {
             position: fixed;
-            bottom: 55px; /* 약간 띄움 */
+            bottom: 75px; /* 약간 띄움 */
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px);
             border: 1px solid rgba(255, 255, 255, 0.3);
@@ -517,6 +517,15 @@
         <div class="border-t pt-4 mt-2 flex justify-between items-center">
             <div class="start-item text-gray-600 !p-2" onclick="handleRestart()"><i class="fas fa-power-off"></i> 다시 시작</div>
             <div class="start-item text-gray-600 !p-2" onclick="handleShutdown()"><i class="fas fa-sign-out-alt"></i> 시스템 종료</div>
+        </div>
+        <div class="border-t pt-4 mt-2">
+            <div class="text-[10px] font-bold text-gray-400 mb-2 px-2">체크포인트</div>
+            <div class="grid grid-cols-2 gap-2">
+                <button onclick="jumpToStep(0)" class="text-[10px] bg-pink-50 hover:bg-pink-100 p-2 rounded text-pink-600 font-bold text-center">1. 화면 설정</button>
+                <button onclick="jumpToStep(7)" class="text-[10px] bg-blue-50 hover:bg-blue-100 p-2 rounded text-blue-600 font-bold text-center">2. 창 다루기</button>
+                <button onclick="jumpToStep(14)" class="text-[10px] bg-yellow-50 hover:bg-yellow-100 p-2 rounded text-yellow-600 font-bold text-center">3. 파일 관리</button>
+                <button onclick="jumpToStep(25)" class="text-[10px] bg-orange-50 hover:bg-orange-100 p-2 rounded text-orange-600 font-bold text-center">4. 작업 표시줄</button>
+            </div>
         </div>
     </div>
 
@@ -810,13 +819,13 @@
             const tz = document.getElementById('target-zone');
             tz.style.display = 'none';
             if (m.type === 'start_bar_click') {
-                tz.style.display = 'block'; tz.style.left = '5px'; tz.style.top = 'calc(100vh - 42px)'; tz.style.width = '42px'; tz.style.height = '42px';
+                tz.style.display = 'block'; tz.style.left = '5px'; tz.style.top = 'calc(100vh - 62px)'; tz.style.width = '55px'; tz.style.height = '55px';
             } else if (m.type === 'icon_move') {
                 tz.style.display = 'block'; tz.style.left = '45%'; tz.style.top = '40%'; tz.style.width = '120px'; tz.style.height = '120px';
             } else if (m.type === 'window_move') {
                 tz.style.display = 'block'; tz.style.left = '60%'; tz.style.top = '50%'; tz.style.width = '35%'; tz.style.height = '40%';
             } else if (m.type === 'snap') {
-                tz.style.display = 'block'; tz.style.left = 'auto'; tz.style.right = '0'; tz.style.top = '0'; tz.style.width = '50px'; tz.style.height = 'calc(100vh - 45px)';
+                tz.style.display = 'block'; tz.style.left = 'auto'; tz.style.right = '0'; tz.style.top = '0'; tz.style.width = '50px'; tz.style.height = 'calc(100vh - 65px)';
             } else if (m.type === 'move_to_folder') {
                 const folderIcon = document.querySelector('.desktop-icon[data-type="folder"]');
                 if (folderIcon) {
@@ -1009,7 +1018,7 @@
             updateTaskbar();
             if (missions[currentStep].type === 'minimize') completeMission(); 
         }
-        function maximizeWin(id) { const w = document.getElementById(id); w.style.width = '100%'; w.style.height = 'calc(100vh - 45px)'; w.style.left = '0'; w.style.top = '0'; }
+        function maximizeWin(id) { const w = document.getElementById(id); w.style.width = '100%'; w.style.height = 'calc(100vh - 65px)'; w.style.left = '0'; w.style.top = '0'; }
 
         // --- 마우스 이벤트 ---
         document.onmousemove = (e) => {
@@ -1050,10 +1059,10 @@
                 activeObj.style.left = '50%';
                 activeObj.style.top = '0';
                 activeObj.style.width = '50%';
-                activeObj.style.height = 'calc(100vh - 45px)';
+                activeObj.style.height = 'calc(100vh - 65px)';
                 completeMission();
             }
-            if (m.type === 'pin' && e.clientY > window.innerHeight - 50) {
+            if (m.type === 'pin' && e.clientY > window.innerHeight - 70) {
                 const type = activeObj.dataset.type;
                 const icon = icons.find(i => i.uid === iconUid);
                 if (icon && !pinnedApps.find(pa => pa.uid === icon.uid)) {
@@ -1063,7 +1072,7 @@
                 }
                 
                 if (iconData) { 
-                    iconData.y = window.innerHeight - 110; 
+                    iconData.y = window.innerHeight - 130; 
                     activeObj.style.top = iconData.y + 'px';
                 }
             }
@@ -1376,6 +1385,19 @@
             if (missions[currentStep] && (missions[currentStep].type === 'volume_adjust' || missions[currentStep].type === 'volume_click')) {
                 completeMission();
             }
+        }
+
+        function jumpToStep(n) {
+            currentStep = n;
+            updateMission();
+            togglePopup('start-menu');
+            const pop = document.getElementById('success-pop');
+            pop.innerText = `챕터 ${n === 0 ? 1 : (n === 7 ? 2 : (n === 14 ? 3 : 4))} 이동 완료! ✨`;
+            pop.classList.remove('hidden');
+            setTimeout(() => {
+                pop.classList.add('hidden');
+                pop.innerText = "성공이야! ✨";
+            }, 1500);
         }
     </script>
 </body>
