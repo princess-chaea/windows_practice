@@ -300,10 +300,10 @@
             transform: translateY(0);
             opacity: 1;
         }
-        #start-menu { width: 320px; left: 10px; }
-        #calendar-popup { width: 280px; right: 10px; }
-        #volume-popup { width: 220px; right: 90px; }
-        #network-popup { width: 220px; right: 140px; }
+        #start-menu { width: 320px; right: 10px; }
+        #calendar-popup { width: 280px; right: 80px; }
+        #volume-popup { width: 220px; right: 160px; }
+        #network-popup { width: 220px; right: 210px; }
 
         .start-item {
             display: flex;
@@ -479,8 +479,6 @@
 
     <!-- [4] 작업 표시줄 -->
     <nav class="taskbar px-2 gap-1">
-        <div id="btn-start" class="w-10 taskbar-icon-btn text-blue-600 text-xl"
-            onclick="togglePopup('start-menu')"><i class="fab fa-windows"></i></div>
         <div class="flex-1 flex gap-2 px-2" id="taskbar-apps"></div>
         <div class="flex items-center gap-1 px-1 h-full">
             <div id="btn-network" class="w-10 taskbar-icon-btn" onclick="togglePopup('network-popup')">
@@ -497,6 +495,8 @@
                 <div id="clock-date">2024-05-20</div>
             </div>
         </div>
+        <div id="btn-start" class="w-10 taskbar-icon-btn text-blue-600 text-xl"
+            onclick="togglePopup('start-menu')"><i class="fab fa-windows"></i></div>
     </nav>
 
     <!-- [4.5] Taskbar Popups -->
@@ -852,7 +852,7 @@
             const tz = document.getElementById('target-zone');
             tz.style.display = 'none';
             if (m.type === 'start_bar_click') {
-                tz.style.display = 'block'; tz.style.left = '5px'; tz.style.top = 'calc(100vh - 62px)'; tz.style.width = '55px'; tz.style.height = '55px';
+                tz.style.display = 'block'; tz.style.left = 'auto'; tz.style.right = '5px'; tz.style.top = 'calc(100vh - 62px)'; tz.style.width = '55px'; tz.style.height = '55px';
             } else if (m.type === 'icon_move') {
                 tz.style.display = 'block'; tz.style.left = '45%'; tz.style.top = '40%'; tz.style.width = '120px'; tz.style.height = '120px';
             } else if (m.type === 'window_move') {
