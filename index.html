@@ -359,8 +359,8 @@
         <div class="max-w-4xl mx-auto w-full">
             <div class="flex items-center gap-6 mb-8 border-b-4 border-pink-200 pb-6">
                 <!-- 선생님이 만드신 peppa_intro.png (혹은 peppa.png)를 활용 -->
-                <div
-                    class="flex items-center justify-center w-24 h-24 bg-pink-100 rounded-full border-4 border-pink-300 shadow-lg">
+                <div onclick="handleEasterEgg()"
+                    class="flex items-center justify-center w-24 h-24 bg-pink-100 rounded-full border-4 border-pink-300 shadow-lg cursor-pointer hover:scale-110 transition-transform">
                     <img src="images/peppa/12.png" alt="페파" class="w-20 h-20 object-contain drop-shadow-md"
                         onerror="this.outerHTML='<span class=\\&quot;text-5xl\\&quot;>🐷</span>'">
                 </div>
@@ -702,6 +702,31 @@
         let pinnedApps = []; // 핀으로 고정한 앱들 저장
         let isResizing = false;
         let isMissionCompleting = false; // 미션 완료 중복 발생 방지
+        let peppaClickCount = 0; // 이스터에그: 페파 클릭 횟수
+
+        function handleEasterEgg() {
+            peppaClickCount++;
+            if (peppaClickCount >= 5) {
+                // 이스터에그 발동: 모든 인트로 미션 완료 처리
+                typingDone = new Set([1, 2, 3]);
+                quizDone = new Set([1, 2, 3]);
+                
+                // 시각적 피드백
+                const msgBox = document.getElementById('quiz-msg');
+                msgBox.innerHTML = "✨ <b>비밀 통로 발견!</b> 윈도우 마스터 교실로 바로 입장합니다! ✨";
+                msgBox.classList.add('text-pink-600', 'animate-bounce');
+                
+                // 모든 체크 아이콘 표시
+                [1, 2, 3].forEach(id => {
+                    document.getElementById('check-type-' + id).classList.remove('hidden');
+                });
+                
+                // 잠깐의 지연 후 바로 시작
+                setTimeout(() => {
+                    startApp();
+                }, 1000);
+            }
+        }
 
         const missions = [
             // 01 화면 설정하기 (캐릭터 12, 1, 2, 3, 4, 5, 6)
