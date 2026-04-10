@@ -349,6 +349,16 @@
             z-index: 9999;
             color: white;
         }
+
+        .semi-transparent {
+            opacity: 0.4 !important;
+            transition: opacity 0.3s;
+        }
+
+        /* 윈도우/아이콘 드래그 시 피드백 */
+        .dragging {
+            filter: brightness(1.1);
+        }
     </style>
 </head>
 
@@ -757,7 +767,7 @@
             { img: 'images/peppa/5.png', name: '레베카', msg: "문서를 [새 폴더] 위(분홍 점선 박스)로 드래그해서 쏙 넣어줘!", type: 'move_to_folder' },
             { img: 'images/peppa/6.png', name: '에밀리', msg: "이제 '새 폴더'를 열고, [보기 변경] 버튼을 눌러 목록으로 봐보자!", type: 'view_change' },
             { img: 'images/peppa/7.png', name: '페드로', msg: "폴더 안의 파일을 우클릭해서 [복사하기]를 눌러봐!", type: 'copy_start' },
-            { img: 'images/peppa/8.png', name: '리차드', msg: "빈 공간에 우클릭해서 [붙여넣기]를 하면 파일이 하나 더 생겨!", type: 'copy_paste' },
+            { img: 'images/peppa/8.png', name: '리차드', msg: "정확하게 폴더의 빈 공간에 우클릭해서 [붙여넣기]를 하면 파일이 하나 더 생겨!", type: 'copy_paste' },
             { img: 'images/peppa/12.png', name: '페파', msg: "방금 만든 '파일.txt-복사본'을 마우스로 꾹 잡고, 화면 왼쪽 [휴지통] 위(분홍색 점선 박스)로 정확하게 드래그해서 버려줘!", type: 'delete' },
             { img: 'images/peppa/10.png', name: '페파 요정', msg: "바탕화면 우클릭 후 [정렬]을 눌러 아이콘들을 줄 맞춰보자!", type: 'refresh' },
             { img: 'images/peppa/11.png', name: '페파 공주', msg: "열려있는 모든 창의 [✕]를 눌러 종료해줘!", type: 'close_all' },
@@ -848,21 +858,15 @@
             });
         }
 
-        // 아이콘 드래그 시작 공통 함수 (폴더 내부 -> 외부 고려)
+        // 아이콘 드래그 시작 
         function setupIconDrag(el) {
             el.onmousedown = (e) => {
                 if (e.button !== 0) return;
                 isDrag = true;
                 activeObj = el;
                 
-                // 만약 폴더 내부에 있다면 바탕화면으로 '승격'
-                if (el.parentElement.closest('.window-body')) {
-                    const rect = el.getBoundingClientRect();
-                    document.getElementById('desktop').appendChild(el);
-                    el.style.position = 'absolute';
-                    el.style.left = rect.left + 'px';
-                    el.style.top = rect.top + 'px';
-                }
+                // [수정] 폴더 내부 아이콘은 클릭 시 자동으로 바탕화면으로 나오게 하지 않음
+                // (기존에는 클릭만 해도 바탕화면으로 순서가 옮겨져서 실수가 많았음)
 
                 offset.x = e.clientX - el.offsetLeft;
                 offset.y = e.clientY - el.offsetTop;
@@ -1002,8 +1006,11 @@
             // 1. 핀 고정된 앱들 먼저 렌더링
             pinnedApps.forEach(icon => {
                 const item = document.createElement('div');
-                item.className = `w-12 h-full flex items-center justify-center bg-white/10`;
-                item.innerHTML = `<i class="fas ${icon.icon} ${icon.color} text-xl"></i>`;
+                item.className = `w-12 h-full flex items-center justify-center bg-white/10 relative group`;
+                item.innerHTML = `
+                    <i class="fas ${icon.icon} ${icon.color} text-xl"></i>
+                    <div class="shortcut-badge !bottom-1 !left-2 scale-75"><i class="fas fa-long-arrow-alt-right"></i></div>
+                `;
                 container.appendChild(item);
             });
 
@@ -1029,6 +1036,7 @@
                         if (missions[currentStep].type === 'focus') completeMission();
                     }
                     updateTaskbar();
+                    checkAllOverlaps();
                 };
                 container.appendChild(item);
             });
@@ -1084,11 +1092,53 @@
         // --- 마우스 이벤트 ---
         document.onmousemove = (e) => {
             if (!isDrag || !activeObj) return;
-            activeObj.style.left = (e.clientX - offset.x) + 'px';
-            activeObj.style.top = (e.clientY - offset.y) + 'px';
+
+            let x = e.clientX - offset.x;
+            let y = e.clientY - offset.y;
+
+            // 창/아이콘 경계 제한
+            const maxX = window.innerWidth - (activeObj.offsetWidth || 100);
+            const maxY = window.innerHeight - (activeObj.offsetHeight || 100) - 65; // 작업표시줄 제외
+            
+            x = Math.max(0, Math.min(x, maxX));
+            y = Math.max(0, Math.min(y, maxY));
+
+            activeObj.style.left = x + 'px';
+            activeObj.style.top = y + 'px';
+            
             if (missions[currentStep].type === 'snap' && e.clientX > window.innerWidth - 10) activeObj.style.opacity = '0.5';
             else activeObj.style.opacity = '1';
+
+            checkAllOverlaps();
         };
+
+        function checkAllOverlaps() {
+            // 모든 윈도우와 바탕화면 아이콘에 대해 페파와 겹치는지 확인
+            const peppa = document.getElementById('peppa-guide');
+            if (!peppa || peppa.classList.contains('hidden')) return;
+
+            const peppaRect = peppa.getBoundingClientRect();
+            
+            // 겹침 확인 대상들
+            const targets = [
+                ...document.querySelectorAll('.window'),
+                ...document.querySelectorAll('.desktop-icon')
+            ];
+
+            targets.forEach(el => {
+                if (el.style.display === 'none') return;
+                const rect = el.getBoundingClientRect();
+                const isOverlap = !(
+                    rect.right < peppaRect.left || 
+                    rect.left > peppaRect.right || 
+                    rect.bottom < peppaRect.top || 
+                    rect.top > peppaRect.bottom
+                );
+
+                if (isOverlap) el.classList.add('semi-transparent');
+                else el.classList.remove('semi-transparent');
+            });
+        }
 
         document.onmouseup = (e) => {
             if (!isDrag || !activeObj) return;
@@ -1206,8 +1256,24 @@
                 if (missions[currentStep].type === 'refresh') completeMission(); 
             }, 200); 
         }
-        function createNewFolder() { icons.push({ uid: 'folder-' + Date.now(), id: 'folder', title: '새 폴더', icon: 'fa-folder', color: 'text-yellow-400', x: 200, y: 200 }); renderDesktop(); if (missions[currentStep].type === 'new_folder') completeMission(); }
-        function createNewFile() { icons.push({ uid: 'file-' + Date.now(), id: 'file', title: '파일.txt', icon: 'fa-file-alt', color: 'text-gray-300', x: 250, y: 150 }); renderDesktop(); if (missions[currentStep].type === 'new_file') completeMission(); }
+        function createNewFolder() { 
+            if (!['new_folder', 'chat'].includes(missions[currentStep].type)) {
+                alert('지금은 폴더를 만들 때가 아니에요! 페파의 안내를 따라주세요.');
+                return;
+            }
+            icons.push({ uid: 'folder-' + Date.now(), id: 'folder', title: '새 폴더', icon: 'fa-folder', color: 'text-yellow-400', x: 200, y: 200 }); 
+            renderDesktop(); 
+            if (missions[currentStep].type === 'new_folder') completeMission(); 
+        }
+        function createNewFile() { 
+            if (!['new_file', 'chat'].includes(missions[currentStep].type)) {
+                alert('지금은 텍스트 문서를 만들 때가 아니에요! 페파의 안내를 따라주세요.');
+                return;
+            }
+            icons.push({ uid: 'file-' + Date.now(), id: 'file', title: '파일.txt', icon: 'fa-file-alt', color: 'text-gray-300', x: 250, y: 150 }); 
+            renderDesktop(); 
+            if (missions[currentStep].type === 'new_file') completeMission(); 
+        }
         function createShortcut() { icons.push({ uid: 'sc-' + Date.now(), id: 'sc', title: '내 PC - 바로 가기', icon: 'fa-desktop', color: 'text-blue-500', x: 150, y: 200, shortcut: true }); renderDesktop(); completeMission(); }
         function changeTheme() { document.body.style.background = '#e0f2fe'; if (missions[currentStep].type === 'theme') completeMission(); }
         function setScreenSaver() {
@@ -1338,7 +1404,12 @@
                 if (icon && !pinnedApps.find(pa => pa.uid === icon.uid)) {
                     pinnedApps.push(icon); updateTaskbar(); completeMission();
                 }
-                if (iconData) { iconData.y = window.innerHeight - 110; activeObj.style.top = iconData.y + 'px'; }
+                // '내 PC' 아이콘 위치를 원래대로(최상단) 유지하도록 함 (사용자 요청)
+                if (iconData) { 
+                    // 원래 위치 정보가 있다면 그대로 두거나, 사용자 요청에 따라 원래 자리에 있게 함
+                    // 여기서는 원래 자리를 그대로 유지하기 위해 top 수정을 하지 않음
+                    // (과거 코드에서는 iconData.y를 강제로 수정했었음)
+                }
             }
             if (m.type === 'move_to_folder' && activeObj.dataset.type === 'file') {
                 const folderIcon = document.querySelector('.desktop-icon[data-type="folder"]');
@@ -1385,13 +1456,15 @@
         function closeAppModal() { document.getElementById('app-modal').style.display = 'none'; }
 
         function handleRestart() {
-            const modal = document.getElementById('shutdown-modal');
-            document.getElementById('power-icon').className = 'fas fa-sync-alt fa-spin text-5xl mb-6';
-            document.getElementById('power-title').innerText = '다시 시작 중...';
-            document.getElementById('power-msg').innerText = '시스템을 다시 시작하고 있습니다. 잠시만 기다려주세요.';
-            document.getElementById('power-btn').style.display = 'none';
-            modal.style.display = 'flex';
-            setTimeout(() => location.reload(), 2000);
+            if (confirm('모든 학습 내용이 초기화되고 처음으로 돌아갑니다. 다시 시작하시겠습니까?')) {
+                const modal = document.getElementById('shutdown-modal');
+                document.getElementById('power-icon').className = 'fas fa-sync-alt fa-spin text-5xl mb-6';
+                document.getElementById('power-title').innerText = '다시 시작 중...';
+                document.getElementById('power-msg').innerText = '시스템을 다시 시작하고 있습니다. 잠시만 기다려주세요.';
+                document.getElementById('power-btn').style.display = 'none';
+                modal.style.display = 'flex';
+                setTimeout(() => location.reload(), 2000);
+            }
         }
 
         function handleShutdown() {
