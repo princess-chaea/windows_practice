@@ -563,7 +563,6 @@
         <input type="range" class="flex-1 accent-pink-500" value="70" oninput="handleVolume(this)">
         <span id="vol-val" class="text-xs font-bold text-gray-600 w-6">70</span>
     </div>
-
     <div id="network-popup" class="taskbar-popup">
         <div class="flex items-center gap-3 mb-3">
             <i class="fas fa-wifi text-blue-500 text-xl"></i>
@@ -593,8 +592,15 @@
                 처음부터 다시하기
             </button>
         </div>
-    </div>
+    </div> <!-- result-screen 종료 -->
 
+    <!-- 앱 실행 시뮬레이션 및 알림 모달 -->
+    <div id="app-modal" class="shutdown-modal" style="display: none;">
+        <div class="bg-white p-8 rounded-3xl text-gray-800 flex flex-col items-center shadow-2xl scale-in-center">
+            <div id="app-modal-icon" class="text-6xl mb-4">🎨</div>
+            <h2 id="app-modal-title" class="text-2xl font-black mb-2">그림판</h2>
+            <p id="app-modal-msg" class="text-gray-500 mb-6 font-medium text-sm text-center">프로그램을 실행하고 있습니다...<br>이것은 학습용 시뮬레이션입니다! ✨</p>
+            <button onclick="closeAppModal()" class="bg-pink-500 text-white px-8 py-2 rounded-full font-bold hover:bg-pink-600 transition">확인</button>
         </div>
     </div>
 
@@ -875,6 +881,7 @@
         }
 
         let dragStartPos = { x: 0, y: 0 };
+        let originalIconPos = { x: 0, y: 0 }; // [추가] 드래그 시작 시 아이콘 위치 저장
         let hasBrokenOut = false;
 
         // 아이콘 드래그 시작 
@@ -884,6 +891,7 @@
                 isDrag = true;
                 activeObj = el;
                 dragStartPos = { x: e.clientX, y: e.clientY };
+                originalIconPos = { x: el.offsetLeft, y: el.offsetTop }; // 원래 위치 기억
                 hasBrokenOut = false;
 
                 offset.x = e.clientX - el.offsetLeft;
@@ -1114,14 +1122,16 @@
             // [추가] 폴더 내부 아이콘인 경우, 일정 거리 이상 드래그해야 바탕화면으로 꺼냄
             if (!hasBrokenOut && activeObj.parentElement?.closest('.window-body')) {
                 const dist = Math.sqrt(Math.pow(e.clientX - dragStartPos.x, 2) + Math.pow(e.clientY - dragStartPos.y, 2));
-                if (dist > 10) { // 10px 이상 움직이면 '탈출'로 간주
-                    const rect = activeObj.getBoundingClientRect();
-                    document.getElementById('desktop').appendChild(activeObj);
-                    activeObj.style.position = 'absolute';
-                    // offset 재계산 (바탕화면 기준)
-                    offset.x = e.clientX - rect.left;
-                    offset.y = e.clientY - rect.top;
-                    hasBrokenOut = true;
+                if (dist > 10) { 
+                    // [수정] 이름에 '복사본'이 포함된 경우에만 폴더 밖으로 나갈 수 있게 제한
+                    if (activeObj.innerText.includes('복사본')) {
+                        const rect = activeObj.getBoundingClientRect();
+                        document.getElementById('desktop').appendChild(activeObj);
+                        activeObj.style.position = 'absolute';
+                        offset.x = e.clientX - rect.left;
+                        offset.y = e.clientY - rect.top;
+                        hasBrokenOut = true;
+                    }
                 }
             }
 
@@ -1456,11 +1466,12 @@
                 if (icon && !pinnedApps.find(pa => pa.uid === icon.uid)) {
                     pinnedApps.push(icon); updateTaskbar(); completeMission();
                 }
-                // '내 PC' 아이콘 위치를 원래대로(최상단) 유지하도록 함 (사용자 요청)
+                // [수정] 고정 후 아이콘을 원래 자리로 복귀시킴
                 if (iconData) { 
-                    // 원래 위치 정보가 있다면 그대로 두거나, 사용자 요청에 따라 원래 자리에 있게 함
-                    // 여기서는 원래 자리를 그대로 유지하기 위해 top 수정을 하지 않음
-                    // (과거 코드에서는 iconData.y를 강제로 수정했었음)
+                    iconData.x = originalIconPos.x;
+                    iconData.y = originalIconPos.y;
+                    activeObj.style.left = iconData.x + 'px';
+                    activeObj.style.top = iconData.y + 'px';
                 }
             }
             if (m.type === 'move_to_folder' && activeObj.dataset.type === 'file') {
