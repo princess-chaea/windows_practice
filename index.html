@@ -646,7 +646,7 @@
                         <div class="text-xs text-yellow-400 font-bold">폴더 생성, 복사/붙여넣기, 삭제</div>
                     </div>
                 </button>
-                <button onclick="jumpToStep(25)" class="flex items-center gap-4 p-5 rounded-2xl bg-orange-50 hover:bg-orange-100 transition-all group">
+                <button onclick="jumpToStep(24)" class="flex items-center gap-4 p-5 rounded-2xl bg-orange-50 hover:bg-orange-100 transition-all group">
                     <span class="w-12 h-12 rounded-xl bg-orange-500 text-white flex items-center justify-center font-black text-xl">4</span>
                     <div class="text-left">
                         <div class="font-black text-orange-600 text-lg">작업 표시줄 활용</div>
@@ -691,23 +691,34 @@
     <script>
         // --- 시스템 팝업을 멀티모달팝업으로 변경 ---
         window.alert = function(msg) {
-            document.getElementById('app-modal-icon').innerText = '🔔';
-            document.getElementById('app-modal-title').innerText = '알림';
-            document.getElementById('app-modal-msg').innerHTML = msg.replace(/\n/g, '<br>');
-            document.getElementById('app-modal').style.display = 'flex';
+            const icon = document.getElementById('app-modal-icon');
+            const title = document.getElementById('app-modal-title');
+            const msgEl = document.getElementById('app-modal-msg');
+            const modal = document.getElementById('app-modal');
+            
+            if (icon) icon.innerText = '🔔';
+            if (title) title.innerText = '알림';
+            if (msgEl) msgEl.innerHTML = msg.replace(/\n/g, '<br>');
+            if (modal) modal.style.display = 'flex';
         };
 
         function showConfirm(msg, onYes) {
-            document.getElementById('confirm-modal-msg').innerHTML = msg.replace(/\n/g, '<br>');
-            document.getElementById('confirm-modal').style.display = 'flex';
-            document.getElementById('confirm-yes-btn').onclick = () => {
-                closeConfirmModal();
-                onYes();
-            };
+            const msgEl = document.getElementById('confirm-modal-msg');
+            const modal = document.getElementById('confirm-modal');
+            if (msgEl) msgEl.innerHTML = msg.replace(/\n/g, '<br>');
+            if (modal) modal.style.display = 'flex';
+            const yesBtn = document.getElementById('confirm-yes-btn');
+            if (yesBtn) {
+                yesBtn.onclick = () => {
+                    closeConfirmModal();
+                    onYes();
+                };
+            }
         }
 
         function closeConfirmModal() {
-            document.getElementById('confirm-modal').style.display = 'none';
+            const modal = document.getElementById('confirm-modal');
+            if (modal) modal.style.display = 'none';
         }
 
         // --- 프리로드 (Preload) ---
@@ -748,12 +759,15 @@
                 
                 // 시각적 피드백
                 const msgBox = document.getElementById('quiz-msg');
-                msgBox.innerHTML = "✨ <b>비밀 통로 발견!</b> 윈도우 마스터 교실로 바로 입장합니다! ✨";
-                msgBox.classList.add('text-pink-600', 'animate-bounce');
+                if (msgBox) {
+                    msgBox.innerHTML = "✨ <b>비밀 통로 발견!</b> 윈도우 마스터 교실로 바로 입장합니다! ✨";
+                    msgBox.classList.add('text-pink-600', 'animate-bounce');
+                }
                 
                 // 모든 체크 아이콘 표시
                 [1, 2, 3].forEach(id => {
-                    document.getElementById('check-type-' + id).classList.remove('hidden');
+                    const check = document.getElementById('check-type-' + id);
+                    if (check) check.classList.remove('hidden');
                 });
                 
                 // 잠깐의 지연 후 바로 시작
