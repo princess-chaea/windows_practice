@@ -1289,23 +1289,42 @@
             }, 200); 
         }
         function createNewFolder() { 
-            // 파일 관리 미션(14단계) 이후이거나 시스템 설정 등 뒷부분 단계에서는 허용
-            if (currentStep < 14 && !['new_folder', 'chat'].includes(missions[currentStep].type)) {
+            const m = missions[currentStep];
+            // 1. 작업 표시줄 활용 단계(24단계) 이상이거나 미션 설명(chat) 단계면 허용
+            if (currentStep >= 24 || m.type === 'chat') {
+                // 허용
+            } 
+            // 2. 현재 미션이 폴더 생성이면 허용
+            else if (m.type === 'new_folder') {
+                // 허용
+            }
+            // 3. 그 외 단계에서는 제한 (학습 집중을 위해)
+            else {
                 alert('지금은 폴더를 만들 때가 아니에요! 페파의 안내를 따라주세요.');
                 return;
             }
             icons.push({ uid: 'folder-' + Date.now(), id: 'folder', title: '새 폴더', icon: 'fa-folder', color: 'text-yellow-400', x: 200, y: 200 }); 
             renderDesktop(); 
-            if (missions[currentStep].type === 'new_folder') completeMission(); 
+            if (m.type === 'new_folder') completeMission(); 
         }
         function createNewFile() { 
-            if (currentStep < 14 && !['new_file', 'chat'].includes(missions[currentStep].type)) {
+            const m = missions[currentStep];
+            // 1. 작업 표시줄 활용 단계(24단계) 이상이거나 미션 설명(chat) 단계면 허용
+            if (currentStep >= 24 || m.type === 'chat') {
+                // 허용
+            } 
+            // 2. 현재 미션이 파일 생성이면 허용
+            else if (m.type === 'new_file') {
+                // 허용
+            }
+            // 3. 그 외 단계에서는 제한
+            else {
                 alert('지금은 텍스트 문서를 만들 때가 아니에요! 페파의 안내를 따라주세요.');
                 return;
             }
             icons.push({ uid: 'file-' + Date.now(), id: 'file', title: '파일.txt', icon: 'fa-file-alt', color: 'text-gray-300', x: 250, y: 150 }); 
             renderDesktop(); 
-            if (missions[currentStep].type === 'new_file') completeMission(); 
+            if (m.type === 'new_file') completeMission(); 
         }
         function createShortcut() { icons.push({ uid: 'sc-' + Date.now(), id: 'sc', title: '내 PC - 바로 가기', icon: 'fa-desktop', color: 'text-blue-500', x: 150, y: 200, shortcut: true }); renderDesktop(); completeMission(); }
         function changeTheme() { document.body.style.background = '#e0f2fe'; if (missions[currentStep].type === 'theme') completeMission(); }
