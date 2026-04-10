@@ -598,13 +598,16 @@
         </div>
     </div>
 
-    <!-- 앱 실행 시뮬레이션 모달 -->
-    <div id="app-modal" class="shutdown-modal" style="display: none;">
+    <!-- 커스텀 확인 창 모달 -->
+    <div id="confirm-modal" class="shutdown-modal" style="display: none;">
         <div class="bg-white p-8 rounded-3xl text-gray-800 flex flex-col items-center shadow-2xl scale-in-center">
-            <div id="app-modal-icon" class="text-6xl mb-4">🎨</div>
-            <h2 id="app-modal-title" class="text-2xl font-black mb-2">그림판</h2>
-            <p id="app-modal-msg" class="text-gray-500 mb-6 font-medium text-sm text-center">프로그램을 실행하고 있습니다...<br>이것은 학습용 시뮬레이션입니다! ✨</p>
-            <button onclick="closeAppModal()" class="bg-pink-500 text-white px-8 py-2 rounded-full font-bold hover:bg-pink-600 transition">확인</button>
+            <div id="confirm-modal-icon" class="text-6xl mb-4">❓</div>
+            <h2 id="confirm-modal-title" class="text-2xl font-black mb-2">확인</h2>
+            <p id="confirm-modal-msg" class="text-gray-500 mb-6 font-medium text-sm text-center"></p>
+            <div class="flex gap-4">
+                <button id="confirm-yes-btn" class="bg-pink-500 text-white px-8 py-2 rounded-full font-bold hover:bg-pink-600 transition">확인</button>
+                <button onclick="closeConfirmModal()" class="bg-gray-200 text-gray-600 px-8 py-2 rounded-full font-bold hover:bg-gray-300 transition">취소</button>
+            </div>
         </div>
     </div>
     
@@ -687,6 +690,19 @@
             document.getElementById('app-modal-msg').innerHTML = msg.replace(/\n/g, '<br>');
             document.getElementById('app-modal').style.display = 'flex';
         };
+
+        function showConfirm(msg, onYes) {
+            document.getElementById('confirm-modal-msg').innerHTML = msg.replace(/\n/g, '<br>');
+            document.getElementById('confirm-modal').style.display = 'flex';
+            document.getElementById('confirm-yes-btn').onclick = () => {
+                closeConfirmModal();
+                onYes();
+            };
+        }
+
+        function closeConfirmModal() {
+            document.getElementById('confirm-modal').style.display = 'none';
+        }
 
         // --- 프리로드 (Preload) ---
         const preload = () => {
@@ -858,15 +874,17 @@
             });
         }
 
+        let dragStartPos = { x: 0, y: 0 };
+        let hasBrokenOut = false;
+
         // 아이콘 드래그 시작 
         function setupIconDrag(el) {
             el.onmousedown = (e) => {
                 if (e.button !== 0) return;
                 isDrag = true;
                 activeObj = el;
-                
-                // [수정] 폴더 내부 아이콘은 클릭 시 자동으로 바탕화면으로 나오게 하지 않음
-                // (기존에는 클릭만 해도 바탕화면으로 순서가 옮겨져서 실수가 많았음)
+                dragStartPos = { x: e.clientX, y: e.clientY };
+                hasBrokenOut = false;
 
                 offset.x = e.clientX - el.offsetLeft;
                 offset.y = e.clientY - el.offsetTop;
@@ -1093,6 +1111,20 @@
         document.onmousemove = (e) => {
             if (!isDrag || !activeObj) return;
 
+            // [추가] 폴더 내부 아이콘인 경우, 일정 거리 이상 드래그해야 바탕화면으로 꺼냄
+            if (!hasBrokenOut && activeObj.parentElement?.closest('.window-body')) {
+                const dist = Math.sqrt(Math.pow(e.clientX - dragStartPos.x, 2) + Math.pow(e.clientY - dragStartPos.y, 2));
+                if (dist > 10) { // 10px 이상 움직이면 '탈출'로 간주
+                    const rect = activeObj.getBoundingClientRect();
+                    document.getElementById('desktop').appendChild(activeObj);
+                    activeObj.style.position = 'absolute';
+                    // offset 재계산 (바탕화면 기준)
+                    offset.x = e.clientX - rect.left;
+                    offset.y = e.clientY - rect.top;
+                    hasBrokenOut = true;
+                }
+            }
+
             let x = e.clientX - offset.x;
             let y = e.clientY - offset.y;
 
@@ -1257,7 +1289,8 @@
             }, 200); 
         }
         function createNewFolder() { 
-            if (!['new_folder', 'chat'].includes(missions[currentStep].type)) {
+            // 파일 관리 미션(14단계) 이후이거나 시스템 설정 등 뒷부분 단계에서는 허용
+            if (currentStep < 14 && !['new_folder', 'chat'].includes(missions[currentStep].type)) {
                 alert('지금은 폴더를 만들 때가 아니에요! 페파의 안내를 따라주세요.');
                 return;
             }
@@ -1266,7 +1299,7 @@
             if (missions[currentStep].type === 'new_folder') completeMission(); 
         }
         function createNewFile() { 
-            if (!['new_file', 'chat'].includes(missions[currentStep].type)) {
+            if (currentStep < 14 && !['new_file', 'chat'].includes(missions[currentStep].type)) {
                 alert('지금은 텍스트 문서를 만들 때가 아니에요! 페파의 안내를 따라주세요.');
                 return;
             }
@@ -1456,7 +1489,7 @@
         function closeAppModal() { document.getElementById('app-modal').style.display = 'none'; }
 
         function handleRestart() {
-            if (confirm('모든 학습 내용이 초기화되고 처음으로 돌아갑니다. 다시 시작하시겠습니까?')) {
+            showConfirm('모든 학습 내용이 초기화되고 처음으로 돌아갑니다. 다시 시작하시겠습니까?', () => {
                 const modal = document.getElementById('shutdown-modal');
                 document.getElementById('power-icon').className = 'fas fa-sync-alt fa-spin text-5xl mb-6';
                 document.getElementById('power-title').innerText = '다시 시작 중...';
@@ -1464,7 +1497,7 @@
                 document.getElementById('power-btn').style.display = 'none';
                 modal.style.display = 'flex';
                 setTimeout(() => location.reload(), 2000);
-            }
+            });
         }
 
         function handleShutdown() {
