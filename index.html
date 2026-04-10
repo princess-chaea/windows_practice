@@ -1523,9 +1523,17 @@
 
         function startAppSim(name) {
             const icons = { '그림판': '🎨', '메모장': '📄', '게임센터': '🎮' };
-            document.getElementById('app-modal-icon').innerText = icons[name] || '🚀';
-            document.getElementById('app-modal-title').innerText = name;
-            document.getElementById('app-modal').style.display = 'flex';
+            const mTag = document.getElementById('app-modal-msg');
+            const icon = document.getElementById('app-modal-icon');
+            const title = document.getElementById('app-modal-title');
+            
+            if (icon) icon.innerText = icons[name] || '🚀';
+            if (title) title.innerText = name;
+            if (mTag) mTag.innerHTML = '프로그램을 실행하고 있습니다...<br>이것은 학습용 시뮬레이션입니다! ✨';
+            
+            const modal = document.getElementById('app-modal');
+            if (modal) modal.style.display = 'flex';
+            
             if (missions[currentStep] && missions[currentStep].type === 'start_app_click') completeMission();
             togglePopup('start-menu');
         }
